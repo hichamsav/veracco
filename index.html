@@ -2,1006 +2,161 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Système NoteCam Cloud</title>
-    
-    <!-- Supabase JS -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Outlook Mailer - Extraction Auto MAC/GPON/SIP/Login</title>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
         }
 
         body {
-            background: linear-gradient(135deg, #1a5fb4 0%, #2ea043 100%);
-            color: #333333;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(145deg, #0a0f1c 0%, #05080f 100%);
             min-height: 100vh;
+            padding: 30px 20px;
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 15px;
-        }
-
-        .app-container {
-            width: 100%;
-            max-width: 1400px;
-            background: #ffffff;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
-            border: 1px solid #e1e8ed;
-            min-height: 95vh;
-        }
-
-        .status-bar {
-            background: linear-gradient(90deg, #1a5fb4 0%, #2ea043 100%);
-            padding: 12px 25px;
-            font-size: 13px;
-            color: #ffffff;
-            text-align: center;
-            border-bottom: 3px solid #ff6b6b;
-            width: 100%;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
         }
 
-        .sync-status {
-            font-size: 11px;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 4px 12px;
-            border-radius: 15px;
+        .main-wrapper {
             display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .sync-icon {
-            animation: spin 2s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .login-container {
-            background: #ffffff;
-            padding: 50px;
-            border-radius: 15px;
-            margin: 40px auto;
-            text-align: center;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            border: 2px solid #e1e8ed;
-            max-width: 500px;
-            width: 90%;
-        }
-
-        .login-container h2 {
-            margin-bottom: 30px;
-            color: #1a5fb4;
-            font-size: 32px;
-            font-weight: 700;
-        }
-
-        .login-input {
+            justify-content: center;
+            align-items: stretch;
             width: 100%;
-            padding: 16px;
-            margin: 15px 0;
-            background: #f8f9fa;
-            border: 2px solid #e1e8ed;
-            border-radius: 10px;
-            color: #333;
-            font-family: 'Segoe UI', sans-serif;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-
-        .login-input:focus {
-            border-color: #1a5fb4;
-            outline: none;
-            box-shadow: 0 0 0 4px rgba(26, 95, 180, 0.1);
-        }
-
-        .login-btn {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(90deg, #1a5fb4 0%, #2ea043 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-family: 'Segoe UI', sans-serif;
-            font-size: 18px;
-            font-weight: 700;
-            margin-top: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .login-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(26, 95, 180, 0.3);
-        }
-
-        .admin-panel, .employee-panel, .reports-panel {
-            display: none;
-        }
-
-        .panel-header {
-            background: linear-gradient(90deg, #ffffff 0%, #f8f9fa 100%);
-            padding: 20px 30px;
-            border-bottom: 2px solid #e1e8ed;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
-
-        .panel-title {
-            font-size: 24px;
-            color: #1a5fb4;
-            font-weight: 700;
-        }
-
-        .logout-btn, .back-btn {
-            padding: 12px 24px;
-            background: #ff6b6b;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-family: 'Segoe UI', sans-serif;
-            margin-left: 10px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .logout-btn:hover, .back-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(255, 107, 107, 0.3);
-        }
-
-        .back-btn {
-            background: #2ea043;
-        }
-
-        .dashboard-section {
-            padding: 30px;
-            margin: 20px;
-            background: #f8f9fa;
-            border-radius: 15px;
-            border: 2px solid #e1e8ed;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.03);
-        }
-
-        .dashboard-section h3 {
-            margin-bottom: 25px;
-            color: #1a5fb4;
-            border-bottom: 2px solid #e1e8ed;
-            padding-bottom: 12px;
-            font-size: 22px;
-            font-weight: 700;
-        }
-
-        .employee-form {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            max-width: 1500px;
+            margin: 0 auto;
             gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .form-input {
-            padding: 14px;
-            background: #ffffff;
-            border: 2px solid #e1e8ed;
-            border-radius: 10px;
-            color: #333;
-            font-family: 'Segoe UI', sans-serif;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-
-        .form-input:focus {
-            border-color: #1a5fb4;
-            outline: none;
-            box-shadow: 0 0 0 4px rgba(26, 95, 180, 0.1);
-        }
-
-        .action-btn {
-            padding: 14px 24px;
-            background: linear-gradient(90deg, #1a5fb4 0%, #2ea043 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-family: 'Segoe UI', sans-serif;
-            font-weight: 700;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-
-        .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(26, 95, 180, 0.3);
-        }
-
-        .employee-list {
-            margin-top: 30px;
-        }
-
-        .employee-card {
-            background: #ffffff;
-            padding: 20px;
-            margin: 15px 0;
-            border-radius: 12px;
-            border-left: 6px solid #1a5fb4;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-        }
-
-        .employee-card:hover {
-            transform: translateX(5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .employee-area {
-            padding: 25px;
-        }
-
-        .area-selection {
-            margin: 25px 0;
-            padding: 25px;
-            background: #ffffff;
-            border-radius: 12px;
-            border: 2px solid #e1e8ed;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-        }
-
-        .area-selection label {
-            display: block;
-            margin-bottom: 15px;
-            color: #1a5fb4;
-            font-weight: 700;
-            font-size: 18px;
-        }
-
-        .area-select {
-            width: 100%;
-            padding: 16px;
-            background: #ffffff;
-            border: 2px solid #e1e8ed;
-            border-radius: 10px;
-            color: #333;
-            font-family: 'Segoe UI', sans-serif;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-
-        .area-select:focus {
-            border-color: #1a5fb4;
-            outline: none;
-            box-shadow: 0 0 0 4px rgba(26, 95, 180, 0.1);
-        }
-
-        .selected-area-display {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e3f2fd 100%);
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-            border: 2px solid #1a5fb4;
-            box-shadow: 0 4px 12px rgba(26, 95, 180, 0.1);
-        }
-
-        .controls-under-area {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin: 20px 0 30px 0;
             flex-wrap: wrap;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 12px;
-            border: 2px solid #e1e8ed;
-        }
-
-        .control-btn {
-            padding: 14px 28px;
-            background: #ffffff;
-            border: 2px solid #e1e8ed;
-            color: #333;
-            font-family: 'Segoe UI', sans-serif;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            border-radius: 10px;
-            min-width: 160px;
-            transition: all 0.3s ease;
-        }
-
-        .control-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
-        }
-
-        .control-btn.primary {
-            background: linear-gradient(90deg, #1a5fb4 0%, #2ea043 100%);
-            color: white;
-            border: none;
-        }
-
-        .control-btn.danger {
-            background: linear-gradient(90deg, #ff6b6b 0%, #ff8e53 100%);
-            color: white;
-            border: none;
-        }
-
-        .camera-status {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            padding: 15px;
-            background: #f0fff4;
-            border-radius: 10px;
-            border: 2px solid #2ea043;
-            margin: 20px 0;
-        }
-
-        .camera-status.active {
-            background: #e3f2fd;
-            border-color: #1a5fb4;
-        }
-
-        .camera-icon {
-            font-size: 28px;
-            color: #2ea043;
-        }
-
-        .camera-status.active .camera-icon {
-            color: #1a5fb4;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
-        }
-
-        .camera-text {
-            font-weight: 600;
-            color: #2ea043;
-            font-size: 16px;
-        }
-
-        .camera-status.active .camera-text {
-            color: #1a5fb4;
-        }
-
-        .photos-container {
-            margin: 30px 0;
-        }
-
-        .photos-title {
-            font-size: 20px;
-            color: #1a5fb4;
-            font-weight: 700;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #e1e8ed;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .photo-boxes-container {
-            display: flex;
-            justify-content: space-between;
-            gap: 15px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .photo-box {
-            flex: 1;
-            min-width: 180px;
-            aspect-ratio: 4/3;
-            background: #f8f9fa;
-            border: 3px solid #e1e8ed;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .photo-box:hover {
-            border-color: #1a5fb4;
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(26, 95, 180, 0.15);
-        }
-
-        .photo-box.captured {
-            border-color: #2ea043;
-            background: #f0fff4;
-        }
-
-        .photo-box-label {
-            font-size: 15px;
-            font-weight: 700;
-            color: #1a5fb4;
-            margin-bottom: 10px;
-        }
-
-        .photo-preview {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: none;
-        }
-
-        .photo-box.captured .photo-preview {
-            display: block;
-        }
-
-        .photo-box.captured .photo-box-label {
-            position: absolute;
-            bottom: 8px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 5px;
-            font-size: 13px;
-            color: #2ea043;
-            font-weight: 700;
-        }
-
-        .photo-icon {
-            font-size: 36px;
-            color: #1a5fb4;
-            margin-bottom: 10px;
-        }
-
-        .photo-box.captured .photo-icon {
-            display: none;
-        }
-
-        .section-divider {
-            text-align: center;
-            margin: 40px 0;
             position: relative;
         }
 
-        .apres-button {
-            display: inline-block;
-            background: linear-gradient(90deg, #ff6b6b 0%, #ff8e53 100%);
-            color: white;
-            padding: 18px 50px;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 22px;
-            cursor: pointer;
-            border: none;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
-            width: 100%;
-            max-width: 450px;
-        }
-
-        .apres-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 30px rgba(255, 107, 107, 0.4);
-        }
-
-        .apres-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .send-report-container {
-            text-align: center;
-            margin: 40px 0;
-            padding: 30px;
-            background: linear-gradient(135deg, #ffffff 0%, #f0fff4 100%);
-            border-radius: 15px;
-            border: 3px solid #2ea043;
-            box-shadow: 0 8px 25px rgba(46, 160, 67, 0.15);
-        }
-
-        .send-report-btn {
-            padding: 18px 50px;
-            background: linear-gradient(90deg, #2ea043 0%, #1a5fb4 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-family: 'Segoe UI', sans-serif;
-            font-size: 20px;
-            font-weight: 700;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 20px rgba(26, 95, 180, 0.3);
-        }
-
-        .send-report-btn:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 30px rgba(26, 95, 180, 0.4);
-        }
-
-        .send-report-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .send-before-btn {
-            background: linear-gradient(90deg, #1a5fb4 0%, #2ea043 100%);
-        }
-
-        .send-after-btn {
-            background: linear-gradient(90deg, #ff6b6b 0%, #ff8e53 100%);
-        }
-
-        .reports-container {
-            margin-top: 30px;
-        }
-
-        .report-card {
-            background: #ffffff;
-            padding: 25px;
-            margin: 20px 0;
-            border-radius: 12px;
-            border-left: 6px solid #1a5fb4;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s ease;
-        }
-
-        .report-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
-        }
-
-        .number-selection {
-            background: #ffffff;
-            padding: 25px;
-            border-radius: 12px;
-            margin: 25px 0;
-            border: 2px solid #e1e8ed;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-        }
-
-        .number-buttons {
-            display: grid;
-            grid-template-columns: repeat(9, 1fr);
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .number-btn {
-            padding: 18px;
-            background: #f8f9fa;
-            border: 2px solid #e1e8ed;
-            border-radius: 10px;
-            font-size: 20px;
-            font-weight: 700;
-            color: #333;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-
-        .number-btn:hover:not(:disabled) {
-            background: #e3f2fd;
-            border-color: #1a5fb4;
-            transform: translateY(-2px);
-        }
-
-        .number-btn.selected {
-            background: linear-gradient(135deg, #1a5fb4 0%, #2ea043 100%);
-            color: white;
-            border-color: #1a5fb4;
-            box-shadow: 0 6px 15px rgba(26, 95, 180, 0.3);
-        }
-
-        .number-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .photos-status {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            border: 1px solid #e1e8ed;
-        }
-
-        .status-item {
+        .templates-panel {
+            background: rgba(20, 30, 45, 0.7);
+            backdrop-filter: blur(4px);
+            border-radius: 32px;
+            padding: 20px 12px;
+            width: 200px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            text-align: center;
+            gap: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.15);
+            align-self: flex-start;
+            margin-top: 5px;
+            transition: all 0.3s ease;
         }
 
-        .status-label {
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 5px;
-        }
-
-        .status-value {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1a5fb4;
-        }
-
-        .status-value.completed {
-            color: #2ea043;
-        }
-
-        @keyframes captureFlash {
-            0% { opacity: 0; }
-            50% { opacity: 1; }
-            100% { opacity: 0; }
-        }
-
-        .capture-flash {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: white;
-            pointer-events: none;
-            z-index: 9999;
-            opacity: 0;
-        }
-
-        .photos-gallery {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .photo-item {
-            border: 2px solid #e1e8ed;
-            border-radius: 10px;
-            overflow: hidden;
-            background: #f8f9fa;
-        }
-
-        .photo-item img {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-        }
-
-        .photo-info {
-            padding: 12px;
-            background: white;
-        }
-
-        .photo-type {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 15px;
-            font-size: 12px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .photo-type.before {
-            background: #1a5fb4;
-            color: white;
-        }
-
-        .photo-type.after {
-            background: #ff6b6b;
-            color: white;
-        }
-
-        @media (max-width: 768px) {
-            .photo-boxes-container {
-                flex-direction: column;
-            }
-            
-            .photo-box {
-                min-width: 100%;
-                margin-bottom: 15px;
-            }
-            
-            .number-buttons {
-                grid-template-columns: repeat(3, 1fr);
-            }
-            
-            .employee-form {
-                grid-template-columns: 1fr;
-            }
-            
-            .control-btn {
-                min-width: 140px;
-                padding: 12px 20px;
-            }
-            
-            .apres-button {
-                padding: 15px 35px;
-                font-size: 20px;
-            }
-            
-            .controls-under-area {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .photos-gallery {
-                grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-            }
-        }
-
-        @media (max-width: 480px) {
-            .login-container {
-                padding: 30px;
-                margin: 20px;
-            }
-            
-            .panel-title {
-                font-size: 20px;
-            }
-            
-            .dashboard-section {
-                padding: 25px;
-                margin: 15px;
-            }
-            
-            .photo-box {
-                aspect-ratio: 3/2;
-            }
-            
-            .number-buttons {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .apres-button {
-                padding: 14px 25px;
-                font-size: 18px;
-            }
-            
-            .control-btn {
-                width: 100%;
-                max-width: 280px;
-            }
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 5px 12px;
+        .template-rect {
+            background: linear-gradient(135deg, #1e2a3a, #0f1722);
             border-radius: 20px;
-            font-size: 13px;
-            font-weight: 700;
-            margin-left: 10px;
-        }
-
-        .badge-blue {
-            background: #1a5fb4;
-            color: white;
-        }
-
-        .badge-green {
-            background: #2ea043;
-            color: white;
-        }
-
-        .badge-red {
-            background: #ff6b6b;
-            color: white;
-        }
-
-        .progress-indicator {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin: 20px 0;
-        }
-
-        .progress-step {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            background: #e1e8ed;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            color: #666;
-        }
-
-        .progress-step.active {
-            background: #1a5fb4;
-            color: white;
-        }
-
-        .progress-step.completed {
-            background: #2ea043;
-            color: white;
-        }
-
-        .progress-label {
-            text-align: center;
-            font-size: 13px;
-            color: #666;
-            margin-top: 8px;
-        }
-
-        .notification {
-            position: fixed;
-            top: 25px;
-            right: 25px;
-            background: #2ea043;
-            color: white;
-            padding: 20px 30px;
-            border-radius: 12px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
-            z-index: 10000;
-            display: none;
-            animation: slideIn 0.3s ease;
-            max-width: 400px;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        .sync-controls {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-            padding: 20px;
-            background: #e3f2fd;
-            border-radius: 12px;
-            border: 2px solid #1a5fb4;
-            flex-wrap: wrap;
-        }
-
-        .sync-btn {
-            padding: 10px 20px;
-            background: #1a5fb4;
-            color: white;
-            border: none;
-            border-radius: 8px;
+            padding: 14px 8px;
             cursor: pointer;
-            font-size: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .sync-btn:hover {
-            background: #154a8a;
-            transform: translateY(-2px);
-        }
-
-        .sync-info {
-            font-size: 14px;
-            color: #666;
-            flex-grow: 1;
-            min-width: 200px;
-        }
-
-        .sync-success {
-            color: #2ea043;
-            font-weight: 600;
-        }
-
-        .sync-error {
-            color: #ff6b6b;
-            font-weight: 600;
-        }
-
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-            display: none;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .loader {
-            border: 6px solid #f3f3f3;
-            border-top: 6px solid #1a5fb4;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            animation: spin 1s linear infinite;
-        }
-
-        .team-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 20px;
-            margin: 25px 0;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            border: 2px solid #e1e8ed;
             text-align: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
 
-        .stat-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        .template-rect:hover {
+            transform: translateX(5px);
+            background: linear-gradient(135deg, #2a3a4a, #1a2535);
+            border-color: #0078D4;
         }
 
-        .stat-value {
-            font-size: 28px;
-            font-weight: 700;
-            color: #1a5fb4;
-            margin: 10px 0;
+        .template-rect.active {
+            background: linear-gradient(135deg, #0078D4, #005a9e);
+            border-color: white;
+            box-shadow: 0 0 0 2px rgba(0,120,212,0.6);
         }
 
-        .stat-label {
-            font-size: 14px;
-            color: #666;
+        .template-rect span {
+            color: white;
+            font-size: 0.75rem;
             font-weight: 600;
+            letter-spacing: 0.3px;
+            word-break: break-word;
+            display: block;
         }
 
-        .photo-storage-info {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e3f2fd 100%);
-            padding: 20px;
-            border-radius: 12px;
-            margin: 20px 0;
-            border-left: 5px solid #1a5fb4;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        .send-btn-center {
+            background: linear-gradient(135deg, #27ae60, #1e8449);
+            border-radius: 20px;
+            padding: 14px 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            margin: 8px 0;
+        }
+        .send-btn-center:hover {
+            transform: translateX(5px);
+            filter: brightness(1.05);
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+        }
+        .send-btn-center span {
+            color: white;
+            font-size: 0.8rem;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            display: block;
+        }
+        .send-btn-center.disabled {
+            opacity: 0.6;
+            pointer-events: none;
         }
 
-        .storage-bar {
-            height: 12px;
-            background: #e1e8ed;
-            border-radius: 6px;
+        .timer-container {
+            background: rgba(0,0,0,0.7);
+            border-radius: 16px;
+            padding: 12px;
             margin-top: 15px;
-            overflow: hidden;
+            display: none;
         }
-
-        .storage-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #1a5fb4 0%, #2ea043 100%);
+        .timer-container.active {
+            display: block;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #2a3a4a;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+        .progress-fill {
             width: 0%;
-            transition: width 1s ease;
-            border-radius: 6px;
+            height: 100%;
+            background: linear-gradient(90deg, #27ae60, #2ecc71);
+            transition: width 0.1s linear;
+            border-radius: 10px;
+        }
+        .timer-text {
+            color: white;
+            font-size: 0.85rem;
+            text-align: center;
+            margin: 5px 0;
+        }
+        .cancel-btn {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 28px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 8px;
+            transition: all 0.2s;
+        }
+        .cancel-btn:hover {
+            filter: brightness(1.05);
+            transform: scale(1.02);
         }
 
         .modal-overlay {
@@ -1010,2024 +165,1478 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 9998;
-            display: none;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.3s;
         }
-
-        .modal {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
+        .modal-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+        .modal-content {
+            background: linear-gradient(145deg, #1e2a3a, #0f1722);
+            border-radius: 32px;
             padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
-            z-index: 9999;
-            display: none;
+            width: 400px;
             max-width: 90%;
-            max-height: 90%;
-            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            text-align: center;
         }
-
-        .team-manager-panel {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: white;
-            z-index: 10001;
-            display: none;
+        .modal-content h3 {
+            color: #f39c12;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
         }
-
-        .real-time-badge {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #2ea043;
+        .modal-content p {
             color: white;
-            padding: 10px 15px;
-            border-radius: 25px;
-            font-size: 12px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        .modal-content .warning-text {
+            color: #e74c3c;
+            font-weight: bold;
+            margin: 10px 0;
+            background: rgba(231,76,60,0.2);
+            padding: 10px;
+            border-radius: 12px;
+        }
+        .modal-code-input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 28px;
+            border: 1px solid #3498db;
+            background: #0f1722;
+            color: white;
+            font-size: 1.2rem;
+            text-align: center;
+            letter-spacing: 5px;
+            margin: 15px 0;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        .modal-btn {
+            padding: 10px 24px;
+            border-radius: 28px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .modal-btn-confirm {
+            background: linear-gradient(135deg, #27ae60, #1e8449);
+            color: white;
+        }
+        .modal-btn-cancel {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+        .modal-btn:hover {
+            transform: scale(1.02);
+            filter: brightness(1.05);
+        }
+
+        .search-export-panel {
+            position: fixed;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 60px;
+            background: rgba(20, 30, 45, 0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 40px 0 0 40px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: -5px 0 25px rgba(0,0,0,0.3);
+            border-left: 1px solid rgba(255,255,255,0.2);
+            z-index: 1000;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .search-export-panel:hover {
+            width: 380px;
+            border-radius: 24px 0 0 24px;
+        }
+
+        .panel-tab {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 60px;
+            height: 120px;
+            background: linear-gradient(135deg, #0078D4, #005a9e);
+            border-radius: 30px 0 0 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            z-index: 1001;
+            transition: all 0.3s;
+        }
+
+        .panel-tab span {
+            font-size: 1.5rem;
+        }
+
+        .panel-tab .tab-text {
+            font-size: 0.7rem;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            color: white;
+            font-weight: bold;
+        }
+
+        .panel-content {
+            padding: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease 0.1s;
+            width: 380px;
+        }
+
+        .search-export-panel:hover .panel-content {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .search-export-panel:hover .panel-tab {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .search-section, .export-section {
+            background: rgba(15, 23, 34, 0.9);
+            border-radius: 24px;
+            padding: 18px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .section-title {
+            color: white;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 2px solid #0078D4;
+            padding-bottom: 8px;
+        }
+
+        .search-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px;
+            border-radius: 28px;
+            border: 1px solid #2a3a4a;
+            background: #0f1722;
+            color: white;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: #0078D4;
+        }
+
+        .search-btn, .export-btn {
+            background: linear-gradient(135deg, #0078D4, #005a9e);
+            border: none;
+            padding: 10px 18px;
+            border-radius: 28px;
+            color: white;
+            cursor: pointer;
             font-weight: 600;
-            box-shadow: 0 4px 15px rgba(46, 160, 67, 0.3);
-            z-index: 9997;
+            transition: all 0.2s;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-    </style>
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body>
-    <!-- Overlay de chargement -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loader"></div>
-        <div style="font-size: 18px; color: #1a5fb4; font-weight: 700;">Chargement...</div>
-    </div>
 
-    <!-- Notification -->
-    <div class="notification" id="notification"></div>
-
-    <!-- Badge temps réel -->
-    <div class="real-time-badge" id="realTimeBadge" style="display: none;">
-        <i class="fas fa-broadcast-tower"></i>
-        <span>Connexion temps réel active</span>
-    </div>
-
-    <!-- Modal overlay -->
-    <div class="modal-overlay" id="modalOverlay"></div>
-
-    <!-- Modal générique -->
-    <div class="modal" id="genericModal"></div>
-
-    <div class="app-container">
-        <!-- Barre d'état -->
-        <div class="status-bar" id="statusBar">
-            <div>
-                <i class="fas fa-cloud"></i> 
-                Système NoteCam Cloud ● 
-                <span id="currentTime">--:--</span> ●
-                <span id="userStatus">Prêt</span>
-            </div>
-            <div class="sync-status" id="syncStatus">
-                <i class="fas fa-sync sync-icon" id="syncIcon"></i>
-                <span id="syncText">Connexion...</span>
-            </div>
-        </div>
-
-        <!-- Page de connexion -->
-        <div class="login-container" id="loginPage">
-            <h2><i class="fas fa-cloud-upload-alt"></i> NoteCam Cloud</h2>
-            <div style="margin-bottom: 25px; color: #666; font-size: 16px;">
-                Système de gestion d'équipe - Cloud Storage
-            </div>
-            <input type="text" id="username" class="login-input" placeholder="Nom d'utilisateur" autocomplete="username">
-            <input type="password" id="password" class="login-input" placeholder="Mot de passe" autocomplete="current-password">
-            <div style="text-align: right; margin: 10px 0;">
-                <a href="#" onclick="showForgotPassword()" style="color: #1a5fb4; text-decoration: none; font-size: 14px;">
-                    <i class="fas fa-key"></i> Mot de passe oublié?
-                </a>
-            </div>
-            <button class="login-btn" onclick="login()">
-                <i class="fas fa-sign-in-alt"></i> Se connecter
-            </button>
-            <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #e1e8ed;">
-                <div style="color: #666; font-size: 14px;">
-                    <i class="fas fa-info-circle"></i> Toutes les données sont stockées sur le cloud
-                </div>
-                <div style="color: #666; font-size: 14px; margin-top: 5px;">
-                    <i class="fas fa-sync"></i> Synchronisation automatique
-                </div>
-            </div>
-        </div>
-
-        <!-- Panneau administrateur -->
-        <div class="admin-panel" id="adminPanel">
-            <div class="panel-header">
-                <div class="panel-title">
-                    <i class="fas fa-user-shield"></i> 
-                    Administration Cloud
-                    <span class="badge badge-blue" id="adminBadge">Admin</span>
-                </div>
-                <div>
-                    <button class="control-btn primary" onclick="openDashboard()">
-                        <i class="fas fa-tachometer-alt"></i> Tableau de bord
-                    </button>
-                    <button class="logout-btn" onclick="logout()">
-                        <i class="fas fa-sign-out-alt"></i> Déconnexion
-                    </button>
-                </div>
-            </div>
-
-            <!-- Tableau de bord principal -->
-            <div class="dashboard-section" id="adminDashboard">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                    <h3><i class="fas fa-chart-line"></i> Vue d'ensemble</h3>
-                    <div style="display: flex; gap: 10px;">
-                        <button class="control-btn" onclick="refreshStats()">
-                            <i class="fas fa-sync-alt"></i> Actualiser
-                        </button>
-                        <button class="control-btn primary" onclick="exportDashboard()">
-                            <i class="fas fa-download"></i> Exporter
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Statistiques -->
-                <div class="team-stats">
-                    <div class="stat-card">
-                        <div class="stat-label">Utilisateurs Actifs</div>
-                        <div class="stat-value" id="activeUsers">0</div>
-                        <div class="stat-label" style="font-size: 12px; color: #2ea043;" id="usersChange">↑ 0%</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Rapports Aujourd'hui</div>
-                        <div class="stat-value" id="todayReports">0</div>
-                        <div class="stat-label" style="font-size: 12px; color: #1a5fb4;">Jour</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Photos Stockées</div>
-                        <div class="stat-value" id="totalPhotos">0</div>
-                        <div class="stat-label" style="font-size: 12px;">15 jours retention</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Stockage Utilisé</div>
-                        <div class="stat-value" id="storageUsed">0 MB</div>
-                        <div class="stat-label" style="font-size: 12px; color: #ff6b6b;" id="storagePercent">0%</div>
-                    </div>
-                </div>
-
-                <!-- Contrôles cloud -->
-                <div class="sync-controls">
-                    <button class="sync-btn" onclick="manualSync()">
-                        <i class="fas fa-sync-alt"></i> Synchroniser
-                    </button>
-                    <button class="sync-btn" onclick="backupData()">
-                        <i class="fas fa-save"></i> Sauvegarder
-                    </button>
-                    <button class="sync-btn" onclick="cleanOldData()">
-                        <i class="fas fa-trash"></i> Nettoyer anciens
-                    </button>
-                    <button class="sync-btn" onclick="generateReports()">
-                        <i class="fas fa-file-pdf"></i> Générer rapports
-                    </button>
-                    <div class="sync-info">
-                        <div>Dernière sync: <span id="lastSyncTimeCloud">Jamais</span></div>
-                        <div id="syncStatusDetail" class="sync-success">Connecté au cloud</div>
-                    </div>
-                </div>
-
-                <!-- Barre de stockage -->
-                <div class="photo-storage-info">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <div style="font-weight: 700; color: #1a5fb4; font-size: 16px;">
-                                <i class="fas fa-database"></i> Stockage Cloud
-                            </div>
-                            <div style="font-size: 14px; color: #666; margin-top: 5px;">
-                                Retention: 15 jours | Auto-nettoyage activé
-                            </div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 24px; font-weight: 700; color: #1a5fb4;" id="storageValue">0 MB</div>
-                            <div style="font-size: 12px; color: #666;">sur 1000 MB</div>
-                        </div>
-                    </div>
-                    <div class="storage-bar">
-                        <div class="storage-fill" id="storageFill"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Navigation -->
-            <div style="display: flex; gap: 10px; padding: 20px 30px; background: #f8f9fa; border-bottom: 2px solid #e1e8ed;">
-                <button class="control-btn" onclick="showSection('gestionUsers')">
-                    <i class="fas fa-users"></i> Gestion Utilisateurs
-                </button>
-                <button class="control-btn" onclick="showSection('gestionZones')">
-                    <i class="fas fa-map-marker-alt"></i> Zones
-                </button>
-                <button class="control-btn" onclick="showSection('rapports')">
-                    <i class="fas fa-file-alt"></i> Rapports
-                </button>
-                <button class="control-btn" onclick="showSection('parametres')">
-                    <i class="fas fa-cog"></i> Paramètres
-                </button>
-            </div>
-
-            <!-- Gestion utilisateurs -->
-            <div class="dashboard-section" id="gestionUsers" style="display: none;">
-                <h3><i class="fas fa-users-cog"></i> Gestion des Utilisateurs</h3>
-                <div class="employee-form">
-                    <input type="text" id="empUsername" class="form-input" placeholder="Nom d'utilisateur">
-                    <input type="password" id="empPassword" class="form-input" placeholder="Mot de passe">
-                    <input type="text" id="empName" class="form-input" placeholder="Nom complet">
-                    <select id="empRole" class="form-input">
-                        <option value="employee">Employé</option>
-                        <option value="supervisor">Superviseur</option>
-                        <option value="admin">Administrateur</option>
-                    </select>
-                    <button class="action-btn" onclick="addEmployee()">
-                        <i class="fas fa-user-plus"></i> Ajouter utilisateur
-                    </button>
-                </div>
-                <div class="employee-list" id="employeesList"></div>
-            </div>
-
-            <!-- Gestion zones -->
-            <div class="dashboard-section" id="gestionZones" style="display: none;">
-                <h3><i class="fas fa-map-marked-alt"></i> Gestion des Zones</h3>
-                <div class="employee-form">
-                    <select id="employeeSelect" class="form-input">
-                        <option value="">Sélectionner un utilisateur</option>
-                    </select>
-                    <input type="text" id="areaName" class="form-input" placeholder="Nom de la zone">
-                    <input type="text" id="areaCode" class="form-input" placeholder="Code zone (ex: ZN001)">
-                    <input type="text" id="areaLocation" class="form-input" placeholder="GPS (ex: 33.5731, -7.5898)">
-                    <button class="action-btn" onclick="assignArea()">
-                        <i class="fas fa-plus-circle"></i> Créer zone
-                    </button>
-                </div>
-                <div class="areas-list" id="assignedAreasList"></div>
-            </div>
-
-            <!-- Rapports -->
-            <div class="dashboard-section" id="rapports" style="display: none;">
-                <h3><i class="fas fa-chart-pie"></i> Rapports et Analytics</h3>
-                <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
-                    <button class="control-btn primary" onclick="viewAllReports()">
-                        <i class="fas fa-list"></i> Tous les rapports
-                    </button>
-                    <button class="control-btn" onclick="generateDailyReport()">
-                        <i class="fas fa-calendar-day"></i> Rapport journalier
-                    </button>
-                    <button class="control-btn" onclick="exportAllData()">
-                        <i class="fas fa-file-export"></i> Exporter données
-                    </button>
-                    <button class="control-btn" onclick="viewActivityLog()">
-                        <i class="fas fa-history"></i> Journal d'activité
-                    </button>
-                </div>
-                <div class="reports-container" id="reportsListMini"></div>
-            </div>
-
-            <!-- Paramètres -->
-            <div class="dashboard-section" id="parametres" style="display: none;">
-                <h3><i class="fas fa-sliders-h"></i> Paramètres Système</h3>
-                <div class="employee-form">
-                    <div style="grid-column: 1 / -1;">
-                        <label style="display: block; margin-bottom: 10px; color: #1a5fb4; font-weight: 600;">
-                            <i class="fas fa-clock"></i> Rétention des données
-                        </label>
-                        <select id="retentionDays" class="form-input">
-                            <option value="7">7 jours</option>
-                            <option value="15" selected>15 jours</option>
-                            <option value="30">30 jours</option>
-                            <option value="90">90 jours</option>
-                        </select>
-                    </div>
-                    <div style="grid-column: 1 / -1;">
-                        <label style="display: block; margin-bottom: 10px; color: #1a5fb4; font-weight: 600;">
-                            <i class="fas fa-sync"></i> Fréquence synchronisation
-                        </label>
-                        <select id="syncFrequency" class="form-input">
-                            <option value="15000">15 secondes</option>
-                            <option value="30000">30 secondes</option>
-                            <option value="60000">1 minute</option>
-                            <option value="300000">5 minutes</option>
-                        </select>
-                    </div>
-                    <button class="action-btn" onclick="saveSettings()" style="grid-column: 1 / -1;">
-                        <i class="fas fa-save"></i> Sauvegarder paramètres
-                    </button>
-                </div>
-                <div style="margin-top: 30px; padding: 20px; background: #fff3cd; border-radius: 10px; border: 2px solid #ffc107;">
-                    <h4 style="color: #856404; margin-bottom: 10px;">
-                        <i class="fas fa-exclamation-triangle"></i> Zone d'administration
-                    </h4>
-                    <div style="display: flex; gap: 10px; margin-top: 15px;">
-                        <button class="control-btn danger" onclick="resetSystem()">
-                            <i class="fas fa-redo"></i> Réinitialiser système
-                        </button>
-                        <button class="control-btn danger" onclick="deleteAllData()">
-                            <i class="fas fa-trash-alt"></i> Supprimer toutes données
-                        </button>
-                        <button class="control-btn" onclick="migrateData()">
-                            <i class="fas fa-exchange-alt"></i> Migrer données
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Panneau employé -->
-        <div class="employee-panel" id="employeePanel">
-            <div class="panel-header">
-                <div class="panel-title" id="employeeName">
-                    <i class="fas fa-user-check"></i> 
-                    <span id="employeeNameText">Tableau de Bord</span>
-                </div>
-                <div>
-                    <button class="control-btn" onclick="viewMyReports()">
-                        <i class="fas fa-history"></i> Mes rapports
-                    </button>
-                    <button class="logout-btn" onclick="logout()">
-                        <i class="fas fa-sign-out-alt"></i> Déconnexion
-                    </button>
-                </div>
-            </div>
-
-            <!-- Info utilisateur -->
-            <div class="photo-storage-info">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <div style="font-weight: 700; color: #1a5fb4; font-size: 16px;" id="welcomeMessage">
-                            <i class="fas fa-user-circle"></i> Bonjour, <span id="userFirstName">Utilisateur</span>
-                        </div>
-                        <div style="font-size: 14px; color: #666; margin-top: 5px;">
-                            <i class="fas fa-cloud"></i> Toutes vos données sont sauvegardées sur le cloud
-                        </div>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="font-size: 14px; color: #666;">
-                            Dernière activité: <span id="lastActivity">-</span>
-                        </div>
-                        <div style="font-size: 12px; color: #2ea043;" id="syncStatusEmployee">
-                            <i class="fas fa-check-circle"></i> Synchronisé
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Synchronisation employé -->
-            <div class="dashboard-section">
-                <h3><i class="fas fa-cloud-upload-alt"></i> Synchronisation Cloud</h3>
-                <div class="sync-controls">
-                    <button class="sync-btn" onclick="manualSync()">
-                        <i class="fas fa-sync-alt"></i> Synchroniser maintenant
-                    </button>
-                    <button class="sync-btn" onclick="checkMyData()">
-                        <i class="fas fa-database"></i> Voir mes données
-                    </button>
-                    <div class="sync-info">
-                        <div>Vos données sont sauvegardées automatiquement</div>
-                        <div id="employeeLastSync" class="sync-success">Dernière sync: À l'instant</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sélection zone -->
-            <div class="area-selection">
-                <label><i class="fas fa-map-pin"></i> Zone de travail :</label>
-                <select class="area-select" id="areaSelect">
-                    <option value="">-- Sélectionnez une zone --</option>
-                </select>
-                
-                <div class="selected-area-display" id="selectedAreaInfo" style="display: none;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <h4 style="color: #1a5fb4; margin-bottom: 8px;">
-                                <i class="fas fa-map-marked-alt"></i> 
-                                Zone: <span id="selectedAreaName">-</span>
-                            </h4>
-                            <p style="color: #666; font-size: 14px;">
-                                <strong>Code:</strong> <span id="selectedAreaCode">-</span> | 
-                                <strong>GPS:</strong> <span id="selectedAreaGPS">-</span>
-                            </p>
-                        </div>
-                        <span class="badge badge-green" id="areaStatus">Active</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Statut caméra -->
-            <div class="camera-status" id="cameraStatus">
-                <div class="camera-icon">
-                    <i class="fas fa-video"></i>
-                </div>
-                <div class="camera-text" id="cameraText">Caméra en cours d'activation...</div>
-            </div>
-
-            <!-- Contrôles -->
-            <div class="controls-under-area">
-                <button class="control-btn primary" id="toggleCamera" style="display: none;">
-                    <i class="fas fa-video"></i> Activer caméra
-                </button>
-                <button class="control-btn danger" id="clearPhotos">
-                    <i class="fas fa-trash"></i> Effacer photos
-                </button>
-                <button class="control-btn" id="refreshLocation">
-                    <i class="fas fa-location-arrow"></i> Localisation
-                </button>
-                <button class="control-btn" id="backToStep1Btn" onclick="goBackToStep1()" style="display: none;">
-                    <i class="fas fa-undo"></i> Retour avant
-                </button>
-            </div>
-
-            <!-- Indicateur progression -->
-            <div class="progress-indicator">
-                <div class="progress-step" id="step1">1</div>
-                <div class="progress-step" id="step2">2</div>
-            </div>
-            <div class="progress-label">
-                <span id="step1Label" style="font-weight: 700;">Photos AVANT</span> 
-                <i class="fas fa-arrow-right"></i> 
-                <span id="step2Label">Photos APRÈS</span>
-            </div>
-
-            <!-- Photos AVANT -->
-            <div class="photos-container" id="beforePhotosContainer">
-                <div class="photos-title">
-                    <span><i class="fas fa-camera"></i> PHOTOS AVANT TRAVAIL</span>
-                    <span class="badge badge-blue" id="beforePhotosCount">0/5</span>
-                </div>
-                <div class="photos-status">
-                    <div class="status-item">
-                        <div class="status-label">Nombre</div>
-                        <div class="status-value" id="statusNumber">-</div>
-                    </div>
-                    <div class="status-item">
-                        <div class="status-label">Zone</div>
-                        <div class="status-value" id="statusZone">-</div>
-                    </div>
-                    <div class="status-item">
-                        <div class="status-label">Photos AVANT</div>
-                        <div class="status-value" id="statusBefore">0/5</div>
-                    </div>
-                </div>
-                <div class="photo-boxes-container" id="photoBoxesContainer"></div>
-            </div>
-
-            <!-- Sélection nombre -->
-            <div class="number-selection" id="numberSelection">
-                <label style="display: block; margin-bottom: 15px; color: #1a5fb4; font-weight: 700; font-size: 18px;">
-                    <i class="fas fa-sort-numeric-up"></i> Sélectionnez un nombre (0-8) :
-                </label>
-                <div class="number-buttons">
-                    <button class="number-btn" data-number="0">0</button>
-                    <button class="number-btn" data-number="1">1</button>
-                    <button class="number-btn" data-number="2">2</button>
-                    <button class="number-btn" data-number="3">3</button>
-                    <button class="number-btn" data-number="4">4</button>
-                    <button class="number-btn" data-number="5">5</button>
-                    <button class="number-btn" data-number="6">6</button>
-                    <button class="number-btn" data-number="7">7</button>
-                    <button class="number-btn" data-number="8">8</button>
-                </div>
-                <div style="margin-top: 20px; text-align: center; color: #666; font-size: 16px;">
-                    Nombre sélectionné : 
-                    <span id="selectedNumberDisplay" style="font-weight: 700; color: #1a5fb4; font-size: 20px;">Aucun</span>
-                </div>
-            </div>
-
-            <!-- Envoi AVANT -->
-            <div class="send-report-container" id="sendBeforeContainer">
-                <div style="margin-bottom: 20px;">
-                    <div style="display: flex; justify-content: center; gap: 25px; flex-wrap: wrap; margin-bottom: 15px;">
-                        <span style="color: #666; font-size: 16px;">
-                            <i class="fas fa-hashtag"></i> Nombre : <strong id="summaryNumber" style="color: #1a5fb4;">-</strong>
-                        </span>
-                        <span style="color: #666; font-size: 16px;">
-                            <i class="fas fa-map-marker-alt"></i> Zone : <strong id="summaryZone" style="color: #1a5fb4;">-</strong>
-                        </span>
-                        <span style="color: #666; font-size: 16px;">
-                            <i class="fas fa-image"></i> Photos : <strong id="summaryBeforePhotos" style="color: #2ea043;">0/5</strong>
-                        </span>
-                    </div>
-                </div>
-                <button class="send-report-btn send-before-btn" id="sendBeforeBtn" onclick="sendBeforePhotos()" disabled>
-                    <i class="fas fa-paper-plane"></i> ENVOYER PHOTOS AVANT
-                </button>
-                <div style="margin-top: 15px; font-size: 14px; color: #666;">
-                    <i class="fas fa-info-circle"></i> Les photos seront sauvegardées sur le cloud
-                </div>
-            </div>
-
-            <!-- Bouton APRÈS -->
-            <div class="section-divider" id="apresButtonContainer" style="display: none;">
-                <button class="apres-button" id="apresButton" onclick="showAfterPhotos()">
-                    <i class="fas fa-arrow-right"></i> PASSER AUX PHOTOS APRÈS TRAVAIL
-                </button>
-            </div>
-
-            <!-- Photos APRÈS -->
-            <div class="photos-container" id="afterPhotosContainer" style="display: none;">
-                <div class="photos-title">
-                    <span><i class="fas fa-camera-retro"></i> PHOTOS APRÈS TRAVAIL</span>
-                    <span class="badge badge-red" id="afterPhotosCount">0/5</span>
-                </div>
-                <div class="photos-status">
-                    <div class="status-item">
-                        <div class="status-label">Nombre</div>
-                        <div class="status-value" id="statusNumberAfter">-</div>
-                    </div>
-                    <div class="status-item">
-                        <div class="status-label">Zone</div>
-                        <div class="status-value" id="statusZoneAfter">-</div>
-                    </div>
-                    <div class="status-item">
-                        <div class="status-label">Photos APRÈS</div>
-                        <div class="status-value" id="statusAfter">0/5</div>
-                    </div>
-                </div>
-                <div class="photo-boxes-container" id="afterPhotoBoxesContainer"></div>
-            </div>
-
-            <!-- Sélection nombre APRÈS -->
-            <div class="number-selection" id="numberSelectionAfter" style="display: none;">
-                <label style="display: block; margin-bottom: 15px; color: #1a5fb4; font-weight: 700; font-size: 18px;">
-                    <i class="fas fa-sort-numeric-up-alt"></i> Sélectionnez un nombre pour APRÈS (0-8) :
-                </label>
-                <div class="number-buttons">
-                    <button class="number-btn" data-number="0">0</button>
-                    <button class="number-btn" data-number="1">1</button>
-                    <button class="number-btn" data-number="2">2</button>
-                    <button class="number-btn" data-number="3">3</button>
-                    <button class="number-btn" data-number="4">4</button>
-                    <button class="number-btn" data-number="5">5</button>
-                    <button class="number-btn" data-number="6">6</button>
-                    <button class="number-btn" data-number="7">7</button>
-                    <button class="number-btn" data-number="8">8</button>
-                </div>
-                <div style="margin-top: 20px; text-align: center; color: #666; font-size: 16px;">
-                    Nombre sélectionné : 
-                    <span id="selectedNumberDisplayAfter" style="font-weight: 700; color: #1a5fb4; font-size: 20px;">Aucun</span>
-                </div>
-            </div>
-
-            <!-- Envoi APRÈS -->
-            <div class="send-report-container" id="sendAfterContainer" style="display: none;">
-                <div style="margin-bottom: 20px;">
-                    <div style="display: flex; justify-content: center; gap: 25px; flex-wrap: wrap; margin-bottom: 15px;">
-                        <span style="color: #666; font-size: 16px;">
-                            <i class="fas fa-hashtag"></i> Nombre : <strong id="summaryNumberAfter" style="color: #1a5fb4;">-</strong>
-                        </span>
-                        <span style="color: #666; font-size: 16px;">
-                            <i class="fas fa-map-marker-alt"></i> Zone : <strong id="summaryZoneAfter" style="color: #1a5fb4;">-</strong>
-                        </span>
-                        <span style="color: #666; font-size: 16px;">
-                            <i class="fas fa-image"></i> Photos : <strong id="summaryAfterPhotos" style="color: #ff6b6b;">0/5</strong>
-                        </span>
-                    </div>
-                    <div style="background: #e3f2fd; padding: 15px; border-radius: 10px; margin-top: 15px;">
-                        <div style="color: #1a5fb4; font-weight: 700; font-size: 16px;">
-                            <i class="fas fa-check-circle"></i> Photos AVANT envoyées avec succès
-                        </div>
-                        <div style="font-size: 14px; color: #666; margin-top: 5px;">
-                            Nombre AVANT : <strong id="completedBeforeNumber">-</strong> | Prêt pour les photos APRÈS
-                        </div>
-                    </div>
-                </div>
-                <button class="send-report-btn send-after-btn" id="sendAfterBtn" onclick="sendAfterPhotos()" disabled>
-                    <i class="fas fa-paper-plane"></i> ENVOYER PHOTOS APRÈS
-                </button>
-            </div>
-        </div>
-
-        <!-- Panneau rapports -->
-        <div class="reports-panel" id="reportsPanel">
-            <div class="panel-header">
-                <div class="panel-title">
-                    <i class="fas fa-chart-bar"></i> Rapports Cloud
-                </div>
-                <div>
-                    <button class="back-btn" onclick="backToAdminPanel()">
-                        <i class="fas fa-arrow-left"></i> Retour
-                    </button>
-                    <button class="logout-btn" onclick="logout()">Déconnexion</button>
-                </div>
-            </div>
-            <div class="report-details-container" id="reportDetailsContainer"></div>
-        </div>
-    </div>
-
-    <!-- Flash effet capture -->
-    <div class="capture-flash" id="captureFlash"></div>
-
-    <script>
-        // ========== CONFIGURATION SUPABASE ==========
-        // ⚠️ REMPLACEZ CES VALEURS PAR LES VÔTRES
-        const SUPABASE_URL = 'https://jxvnmcgfwlbswtkiglmh.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_8zBlBZ-Cknk4ZhARMDURBQ_F1Sawfo1';
-        
-        // ========== CONSTANTES ==========
-        const RETENTION_DAYS = 15;
-        const SYNC_INTERVAL = 30000; // 30 secondes
-        const AUTO_SAVE_INTERVAL = 60000; // 1 minute
-        const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-
-        // ========== VARIABLES GLOBALES ==========
-        let supabaseClient = null;
-        let currentUser = null;
-        let currentSession = null;
-        let syncInterval = null;
-        let autoSaveInterval = null;
-        let realtimeSubscription = null;
-        let cameraStream = null;
-        let isCameraActive = false;
-        let selectedArea = null;
-        let selectedNumber = null;
-        let selectedNumberAfter = null;
-        let currentStep = 1;
-        let beforePhotos = Array(5).fill(null);
-        let afterPhotos = Array(5).fill(null);
-        let tempReport = null;
-        let unsavedChanges = false;
-
-        // ========== INITIALISATION ==========
-        async function initializeApp() {
-            showLoading('Connexion au cloud...');
-            
-            try {
-                // Initialiser Supabase
-                await initializeSupabase();
-                
-                // Vérifier si l'utilisateur est déjà connecté
-                await checkExistingSession();
-                
-                // Mettre à jour l'heure
-                updateCurrentTime();
-                setInterval(updateCurrentTime, 1000);
-                
-                // Configurer les écouteurs d'événements
-                setupEventListeners();
-                
-                // Démarrer les tâches en arrière-plan
-                startBackgroundTasks();
-                
-                hideLoading();
-                showNotification('Système cloud prêt', 'success');
-                
-            } catch (error) {
-                console.error('Erreur initialisation:', error);
-                showNotification('Erreur de connexion au cloud', 'error');
-                hideLoading();
-            }
+        .search-btn:hover, .export-btn:hover {
+            transform: scale(1.02);
+            filter: brightness(1.05);
         }
 
-        async function initializeSupabase() {
-            try {
-                // Vérifier que Supabase est chargé
-                if (typeof supabase === 'undefined') {
-                    throw new Error('Bibliothèque Supabase non chargée');
+        .result-display {
+            background: #0f1722;
+            border-radius: 20px;
+            padding: 12px;
+            margin-top: 12px;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .result-item {
+            padding: 10px;
+            border-bottom: 1px solid #2a3a4a;
+            color: #cbd5e1;
+            font-size: 0.75rem;
+        }
+
+        .result-item.found {
+            background: rgba(46, 204, 113, 0.2);
+            border-left: 3px solid #2ecc71;
+        }
+
+        .result-item.not-found {
+            background: rgba(231, 76, 60, 0.2);
+            border-left: 3px solid #e74c3c;
+        }
+
+        .date-range {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .date-input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 20px;
+            border: 1px solid #3498db;
+            background: #1a2a3a;
+            color: white;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+        .date-input::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+        .date-input:hover {
+            border-color: #2ecc71;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .export-xlsx-btn {
+            background: linear-gradient(135deg, #27ae60, #1e8449);
+            width: 100%;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .export-xlsx-btn:hover {
+            transform: scale(1.02);
+            filter: brightness(1.05);
+        }
+
+        .buttons-inside-card {
+            position: absolute;
+            right: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 30;
+            background: transparent;
+        }
+
+        .action-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.3rem;
+            transition: all 0.2s ease;
+            border: none;
+            color: white;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px);
+        }
+
+        .action-btn:hover {
+            transform: scale(1.08);
+            filter: brightness(1.05);
+        }
+
+        .action-btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn-rotate { background: linear-gradient(135deg, #3498db, #1f618d); }
+        .btn-select { background: linear-gradient(135deg, #2ecc71, #1e8449); }
+        .btn-reset { background: linear-gradient(135deg, #f39c12, #d68910); }
+        .btn-delete-all { background: linear-gradient(135deg, #e74c3c, #b03a2e); }
+        .btn-extract { background: linear-gradient(135deg, #9b59b6, #6c3483); }
+
+        .action-btn {
+            position: relative;
+        }
+
+        .action-btn::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 54px;
+            background: #000000dd;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.2s;
+            pointer-events: none;
+            font-weight: 500;
+            z-index: 102;
+        }
+
+        .action-btn:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .main-card {
+            background: white;
+            border-radius: 36px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            width: 620px;
+            max-width: 620px;
+            position: relative;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            margin-right: 20px;
+        }
+
+        .header {
+            background: #0f2b3d;
+            color: white;
+            padding: 16px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: #0078D4;
+            border-radius: 60px;
+            padding: 2px 12px;
+            font-size: 0.7rem;
+        }
+
+        .sub {
+            margin-top: 5px;
+            opacity: 0.8;
+            font-size: 0.7rem;
+        }
+
+        .form-body {
+            padding: 20px 24px;
+            position: relative;
+        }
+
+        .field-group {
+            margin-bottom: 16px;
+        }
+
+        .field-label {
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #1e4a76;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        input, .rich-editor {
+            width: 100%;
+            padding: 10px 16px;
+            border: 1px solid #cbdde9;
+            border-radius: 32px;
+            font-size: 0.85rem;
+            transition: 0.2s;
+            background: white;
+        }
+
+        input:focus, .rich-editor:focus {
+            outline: none;
+            border-color: #0078D4;
+            box-shadow: 0 0 0 3px rgba(0,120,212,0.15);
+        }
+
+        .subject-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .paste-btn {
+            background: #0078D4;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 44px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: 0.2s;
+        }
+
+        .paste-btn:hover {
+            background: #0a558c;
+        }
+
+        .rich-editor {
+            min-height: 280px;
+            background: #fefefe;
+            border-radius: 28px;
+            overflow-y: auto;
+            line-height: 1.5;
+            font-size: 0.85rem;
+            border: 1px solid #e2e8f0;
+            padding: 14px;
+        }
+
+        .image-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            margin: 16px auto;
+            width: 100%;
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 8px;
+        }
+
+        .rich-editor img {
+            width: auto;
+            max-width: 100%;
+            height: auto;
+            cursor: crosshair;
+            display: block;
+            margin: 0 auto;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            transition: 0.1s;
+            background: #f1f5f9;
+        }
+
+        .selection-rect {
+            position: absolute;
+            border: 3px solid #2ecc71;
+            background: rgba(46, 204, 113, 0.25);
+            display: none;
+            z-index: 25;
+            cursor: crosshair;
+            border-radius: 8px;
+            pointer-events: none;
+        }
+
+        .selection-rect.active {
+            display: block;
+        }
+
+        .toast-custom {
+            visibility: hidden;
+            min-width: 260px;
+            background: #2c6e2c;
+            color: white;
+            text-align: center;
+            border-radius: 50px;
+            padding: 12px 24px;
+            position: fixed;
+            bottom: 35px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2100;
+            opacity: 0;
+            transition: 0.2s;
+            font-size: 0.85rem;
+            font-weight: bold;
+            pointer-events: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .toast-custom.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .number-required-badge {
+            background: #dc2626;
+            color: white;
+            font-size: 0.6rem;
+            padding: 3px 10px;
+            border-radius: 40px;
+            margin-left: 10px;
+            display: inline-block;
+        }
+        
+        .number-optional-badge {
+            background: #27ae60;
+            color: white;
+            font-size: 0.6rem;
+            padding: 3px 10px;
+            border-radius: 40px;
+            margin-left: 10px;
+            display: inline-block;
+        }
+
+        .hidden-field {
+            display: none;
+        }
+
+        .smtp-credentials {
+            display: none;
+        }
+
+        .status-area {
+            margin-top: 18px;
+            background: #eef2ff;
+            padding: 12px;
+            border-radius: 60px;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #1e4a76;
+            font-weight: 500;
+        }
+        
+        .sip-preview {
+            background: #1a2a3a;
+            border-radius: 20px;
+            padding: 8px 12px;
+            margin-top: 8px;
+            font-size: 0.7rem;
+            color: #2ecc71;
+            text-align: center;
+            display: none;
+        }
+        .sip-preview.active {
+            display: block;
+        }
+
+        @media (max-width: 900px) {
+            .search-export-panel:hover { width: 320px; }
+            .panel-content { width: 320px; }
+            .main-card { width: 95%; max-width: 95%; margin-right: 0; margin-bottom: 80px; }
+            .buttons-inside-card { position: fixed; left: 15px; right: auto; top: auto; bottom: 20px; flex-direction: row; background: rgba(0,0,0,0.7); padding: 8px 14px; border-radius: 60px; backdrop-filter: blur(8px); z-index: 100; }
+            .templates-panel { width: 100%; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 20px; }
+            .action-btn::after { left: auto; right: 54px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-wrapper">
+    <div class="templates-panel" id="templatesPanel">
+        <div class="template-rect" data-template="0"><span>🔒 Activation Bloquée</span></div>
+        <div class="template-rect" data-template="1"><span>📍 Correction Adresse</span></div>
+        <div class="template-rect" data-template="2"><span>🆔 Correction ID</span></div>
+        <div class="template-rect" data-template="3"><span>🚚 Activation Déménagement</span></div>
+        <div class="template-rect" data-template="4"><span>🏠 Déménagement même Port</span></div>
+        <div class="template-rect" data-template="5"><span>📦 Déménagement Non même Port</span></div>
+        <div class="template-rect" data-template="6"><span>📞 Activation Porta</span></div>
+        <div class="template-rect" data-template="7"><span>🔑 Demande Accès</span></div>
+        <div class="template-rect" data-template="8"><span>📄 DEMANDE OGIF</span></div>
+        <div class="send-btn-center" id="globalSendBtn">
+            <span>📧 ENVOYER</span>
+        </div>
+    </div>
+
+    <div class="main-card">
+        <div class="buttons-inside-card">
+            <button class="action-btn btn-rotate" data-tooltip="Rotation -90°" id="globalRotateBtn">⟳</button>
+            <button class="action-btn btn-select" data-tooltip="Sélectionner zone" id="globalSelectBtn">✂️</button>
+            <button class="action-btn btn-reset" data-tooltip="Restaurer taille originale" id="globalResetBtn">↺</button>
+            <button class="action-btn btn-delete-all" data-tooltip="Supprimer toutes les images" id="globalDeleteAllBtn">🗑️</button>
+            <button class="action-btn btn-extract" data-tooltip="Extraire tout le texte" id="globalExtractBtn">🔍</button>
+        </div>
+
+        <div class="header">
+            <h1>📧 Outlook SMTP <span class="badge">Extraction Auto</span></h1>
+            <div class="sub">📸 Collez/glissez une image → <span style="color: #2ecc71; font-weight: bold;">📏 Taille originale conservée</span></div>
+        </div>
+        <div class="form-body">
+            <div class="field-group hidden-field">
+                <div class="field-label">👤 Destinataire (To)</div>
+                <input type="email" id="toField" placeholder="exemple@entreprise.com">
+            </div>
+            <div class="field-group hidden-field">
+                <div class="field-label">📎 CC (Copie)</div>
+                <input type="email" id="ccField" placeholder="cc@domaine.com">
+            </div>
+
+            <div class="field-group">
+                <div class="field-label">
+                    📌 Objet 
+                    <span id="numberRequirementBadge" class="number-required-badge">SIP OBLIGATOIRE</span>
+                </div>
+                <div class="subject-group">
+                    <input type="text" id="subjectField" placeholder="Objet de l'e-mail">
+                    <button id="pasteNumberBtn" class="paste-btn" title="Coller numéro SIP">📋</button>
+                </div>
+                <div id="sipPreview" class="sip-preview"></div>
+            </div>
+
+            <div class="field-group">
+                <div class="field-label">📝 Contenu HTML + images</div>
+                <div id="richEditor" class="rich-editor" contenteditable="true"></div>
+            </div>
+
+            <div id="timerContainer" class="timer-container">
+                <div class="timer-text" id="timerText">⏳ Envoi dans 10 secondes...</div>
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+                <button id="cancelSendBtn" class="cancel-btn">❌ ANNULER</button>
+            </div>
+
+            <div id="statusMessage" class="status-area">✅ Prêt - Surveillance automatique du numéro SIP dans l'objet</div>
+        </div>
+    </div>
+
+    <div class="search-export-panel" id="searchExportPanel">
+        <div class="panel-tab">
+            <span>🔍</span>
+            <span class="tab-text">RECHERCHE</span>
+        </div>
+        <div class="panel-content">
+            <div class="search-section">
+                <div class="section-title">🔍 Rechercher un SIP</div>
+                <div class="search-input-group">
+                    <input type="text" id="searchSipInput" class="search-input" placeholder="Entrez le numéro SIP">
+                    <button id="searchSipBtn" class="search-btn">🔎 Chercher</button>
+                </div>
+                <div id="searchResult" class="result-display">
+                    <div style="color:#6c757d; text-align:center;">Aucune recherche effectuée</div>
+                </div>
+            </div>
+            <div class="export-section">
+                <div class="section-title">📊 Export des historiques</div>
+                <div class="date-range">
+                    <input type="date" id="startDate" class="date-input">
+                    <input type="date" id="endDate" class="date-input">
+                </div>
+                <div class="export-buttons">
+                    <button id="exportXlsxBtn" class="export-xlsx-btn">📊 Export XLSX</button>
+                </div>
+                <div style="font-size: 11px; color: #aaa; margin-top: 10px; text-align: center;">
+                    ⚠️ Laissez vide pour exporter tout l'historique
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="globalToast" class="toast-custom">📨 Succès</div>
+
+<div id="confirmationModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3>⚠️ CONFIRMATION REQUISE</h3>
+        <p>Ce numéro SIP <strong id="modalSipNumber"></strong> a déjà été envoyé avec le template <strong id="modalTemplateName"></strong> il y a moins de 48 heures.</p>
+        <div class="warning-text">🔐 Veuillez entrer le code de confirmation ci-dessous pour confirmer l'envoi :</div>
+        <div style="font-size: 24px; font-weight: bold; letter-spacing: 8px; color: #2ecc71; margin: 10px 0;" id="modalCodeDisplay">----</div>
+        <input type="text" id="modalCodeInput" class="modal-code-input" placeholder="Entrez le code" maxlength="4" autocomplete="off">
+        <div class="modal-buttons">
+            <button id="modalConfirmBtn" class="modal-btn modal-btn-confirm">✅ CONFIRMER</button>
+            <button id="modalCancelBtn" class="modal-btn modal-btn-cancel">❌ ANNULER</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        if (typeof Tesseract !== 'undefined') Tesseract.setLogging(false);
+        
+        let smtpUser = "";
+        let smtpPass = "";
+        
+        let countdownInterval = null;
+        let isWaitingForSend = false;
+        let pendingSend = null;
+        let countdownSeconds = 10;
+        
+        let sentEmailsHistory = [];
+        
+        let pendingConfirmationSend = null;
+        let currentConfirmationCode = "";
+        
+        // Fonction pour extraire le numéro SIP de l'objet
+        function extractSipFromSubject() {
+            const subject = document.getElementById('subjectField').value;
+            if (!subject) return null;
+            const match = subject.match(/(05[0-9]{7,8}|5[0-9]{8})/);
+            if (match) {
+                const sip = match[0];
+                const sipPreview = document.getElementById('sipPreview');
+                sipPreview.innerHTML = `📞 SIP détecté: ${sip}`;
+                sipPreview.classList.add('active');
+                return sip;
+            } else {
+                const sipPreview = document.getElementById('sipPreview');
+                sipPreview.classList.remove('active');
+                return null;
+            }
+        }
+        
+        // Surveillance en temps réel de l'objet (toutes les secondes)
+        let lastExtractedSip = null;
+        function startSubjectWatcher() {
+            setInterval(() => {
+                const currentSip = extractSipFromSubject();
+                if (currentSip && currentSip !== lastExtractedSip) {
+                    lastExtractedSip = currentSip;
+                    extractedData.sip = currentSip;
+                    autoReplacePlaceholders();
+                    console.log('SIP mis à jour depuis objet:', currentSip);
                 }
-                
-                // Créer le client Supabase
-                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-                    auth: {
-                        persistSession: true,
-                        autoRefreshToken: true,
-                        detectSessionInUrl: true
-                    },
-                    realtime: {
-                        params: {
-                            eventsPerSecond: 10
-                        }
-                    },
-                    global: {
-                        headers: {
-                            'X-Client-Info': 'notecam-cloud-system'
+            }, 1000);
+        }
+        
+        function loadHistory() {
+            const saved = localStorage.getItem('sentEmailsHistory');
+            if (saved) {
+                try { sentEmailsHistory = JSON.parse(saved); } catch(e) {}
+            }
+        }
+        
+        function saveHistory() {
+            localStorage.setItem('sentEmailsHistory', JSON.stringify(sentEmailsHistory));
+        }
+        
+        // Vérifier si un SIP avec le même template a été envoyé dans les 48h
+        function checkDuplicateSip(sipNumber, templateName) {
+            if (!sipNumber || sipNumber === 'N/A') return { isDuplicate: false, lastDate: null, hoursLeft: null };
+            
+            const cleanedSip = sipNumber.toString().trim().replace(/\D/g, '');
+            const now = Date.now();
+            const fortyEightHours = 48 * 60 * 60 * 1000;
+            
+            const matchingEntries = sentEmailsHistory.filter(entry => {
+                const entrySip = entry.sip ? entry.sip.toString().replace(/\D/g, '') : '';
+                return entrySip === cleanedSip && entry.template === templateName;
+            });
+            
+            if (matchingEntries.length === 0) return { isDuplicate: false, lastDate: null, hoursLeft: null };
+            
+            const lastEntry = matchingEntries.sort((a,b) => b.timestamp - a.timestamp)[0];
+            const timeDiff = now - lastEntry.timestamp;
+            
+            if (timeDiff < fortyEightHours) {
+                const hoursLeft = Math.ceil((fortyEightHours - timeDiff) / (60 * 60 * 1000));
+                return { isDuplicate: true, lastDate: lastEntry.dateFormatted, hoursLeft: hoursLeft };
+            }
+            
+            return { isDuplicate: false, lastDate: null, hoursLeft: null };
+        }
+        
+        function generateConfirmationCode() {
+            return Math.floor(1000 + Math.random() * 9000).toString();
+        }
+        
+        function showConfirmationModal(sipNumber, templateName, confirmCallback) {
+            pendingConfirmationSend = confirmCallback;
+            currentConfirmationCode = generateConfirmationCode();
+            
+            document.getElementById('modalSipNumber').textContent = sipNumber;
+            document.getElementById('modalTemplateName').textContent = templateName;
+            document.getElementById('modalCodeDisplay').textContent = currentConfirmationCode;
+            document.getElementById('modalCodeInput').value = '';
+            
+            const modal = document.getElementById('confirmationModal');
+            modal.classList.add('active');
+        }
+        
+        function hideConfirmationModal() {
+            const modal = document.getElementById('confirmationModal');
+            modal.classList.remove('active');
+        }
+        
+        function addToHistory(sipNumber, templateName, subject, recipient, senderEmail) {
+            const entry = {
+                id: Date.now(),
+                date: new Date().toISOString(),
+                dateFormatted: new Date().toLocaleString('fr-FR'),
+                timeFormatted: new Date().toLocaleTimeString('fr-FR'),
+                timestamp: Date.now(),
+                sip: sipNumber || 'N/A',
+                template: templateName,
+                subject: subject,
+                recipient: recipient,
+                sender: senderEmail || smtpUser
+            };
+            sentEmailsHistory.unshift(entry);
+            saveHistory();
+            return entry;
+        }
+        
+        function searchSIP(sipNumber) {
+            if (!sipNumber) return [];
+            const cleanedSip = sipNumber.toString().trim().replace(/\D/g, '');
+            if (!cleanedSip) return [];
+            return sentEmailsHistory.filter(entry => {
+                const entrySip = entry.sip ? entry.sip.toString().replace(/\D/g, '') : '';
+                return entrySip === cleanedSip;
+            });
+        }
+        
+        function displaySearchResults(sipNumber, results) {
+            const resultDiv = document.getElementById('searchResult');
+            if (!results.length) {
+                resultDiv.innerHTML = `<div class="result-item not-found"><strong>❌ Numéro ${sipNumber}</strong><br>Aucun envoi trouvé</div>`;
+                return;
+            }
+            let html = `<div class="result-item found"><strong>✅ ${results.length} envoi(s) trouvé(s)</strong></div>`;
+            results.forEach(res => {
+                html += `<div class="result-item">📅 ${res.dateFormatted}<br>📋 Template: ${res.template}<br>📞 SIP: ${res.sip}<br>📧 Expéditeur: ${res.sender || 'N/A'}</div>`;
+            });
+            resultDiv.innerHTML = html;
+        }
+        
+        function exportToXLSX(startDateStr, endDateStr) {
+            let filtered = [...sentEmailsHistory];
+            if (startDateStr) {
+                const start = new Date(startDateStr);
+                start.setHours(0,0,0,0);
+                filtered = filtered.filter(e => new Date(e.date) >= start);
+            }
+            if (endDateStr) {
+                const end = new Date(endDateStr);
+                end.setHours(23,59,59,999);
+                filtered = filtered.filter(e => new Date(e.date) <= end);
+            }
+            const worksheetData = [['Date', 'Heure', 'Numéro SIP', 'Type de Template', 'Expéditeur (Sender)']];
+            filtered.forEach(entry => {
+                worksheetData.push([
+                    entry.dateFormatted.split(' ')[0] || '',
+                    entry.timeFormatted || '',
+                    entry.sip || 'N/A',
+                    entry.template || '',
+                    entry.sender || 'N/A'
+                ]);
+            });
+            const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+            ws['!cols'] = [{wch:12},{wch:10},{wch:15},{wch:30},{wch:35}];
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Historique Emails');
+            XLSX.writeFile(wb, `historique_emails_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.xlsx`);
+            showToast(`📊 Export: ${filtered.length} envois`);
+        }
+        
+        async function loadCredentialsFromFile() {
+            try {
+                const response = await fetch('emailpass.txt');
+                if (!response.ok) throw new Error('Fichier non trouvé');
+                const content = await response.text();
+                const lines = content.trim().split('\n');
+                for (let line of lines) {
+                    line = line.trim();
+                    if (line.includes(':')) {
+                        const [email, pass] = line.split(':');
+                        if (email && pass) {
+                            smtpUser = email.trim();
+                            smtpPass = pass.trim();
+                            showToast('✅ Identifiants chargés depuis emailpass.txt');
+                            return true;
                         }
                     }
-                });
-                
-                // Tester la connexion
-                const { data, error } = await supabaseClient.auth.getSession();
-                
-                if (error) {
-                    console.warn('Supabase connecté en mode limité:', error.message);
-                    showNotification('Mode hors ligne activé', 'warning');
-                } else {
-                    console.log('Supabase initialisé avec succès');
-                    updateSyncStatus('connecté', 'Connecté au cloud');
-                    
-                    // Configurer les abonnements en temps réel
-                    setupRealtimeSubscriptions();
                 }
-                
-                return true;
-                
-            } catch (error) {
-                console.error('Erreur initialisation Supabase:', error);
-                showNotification('Mode hors ligne - Reconnexion automatique', 'warning');
+                throw new Error('Format invalide');
+            } catch(e) {
+                console.error('Erreur chargement credentials:', e);
+                showToast('⚠️ emailpass.txt introuvable', true);
                 return false;
             }
         }
-
-        function setupRealtimeSubscriptions() {
-            if (!supabaseClient) return;
-            
-            // S'abonner aux nouveaux rapports
-            realtimeSubscription = supabaseClient
-                .channel('realtime-reports')
-                .on('postgres_changes', 
-                    { 
-                        event: 'INSERT', 
-                        schema: 'public', 
-                        table: 'reports',
-                        filter: 'team_id=eq.' + (currentUser?.team_id || 'default')
-                    },
-                    (payload) => {
-                        console.log('Nouveau rapport en temps réel:', payload.new);
-                        handleNewReport(payload.new);
-                    }
-                )
-                .on('postgres_changes',
-                    {
-                        event: '*',
-                        schema: 'public',
-                        table: 'users',
-                        filter: 'team_id=eq.' + (currentUser?.team_id || 'default')
-                    },
-                    (payload) => {
-                        console.log('Changement utilisateur:', payload);
-                        handleUserUpdate(payload);
-                    }
-                )
-                .subscribe((status) => {
-                    if (status === 'SUBSCRIBED') {
-                        console.log('Abonnement temps réel activé');
-                        document.getElementById('realTimeBadge').style.display = 'flex';
-                    }
-                });
+        
+        function showToast(msg, isError = false) {
+            const toastDiv = document.getElementById('globalToast');
+            toastDiv.textContent = msg;
+            toastDiv.style.backgroundColor = isError ? '#c0392b' : '#2c6e2c';
+            toastDiv.classList.add('show');
+            setTimeout(() => toastDiv.classList.remove('show'), 2800);
         }
-
-        // ========== GESTION AUTHENTIFICATION ==========
-        async function checkExistingSession() {
-            try {
-                const { data: { session }, error } = await supabaseClient.auth.getSession();
-                
-                if (error) throw error;
-                
-                if (session) {
-                    currentSession = session;
-                    await loadUserProfile(session.user.id);
-                }
-                
-            } catch (error) {
-                console.error('Erreur vérification session:', error);
+        
+        function updateStatus(msg, isError = false) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.innerHTML = isError ? `⚠️ ${msg}` : `✅ ${msg}`;
+            statusDiv.style.background = isError ? '#ffe6e6' : '#eef2ff';
+        }
+        
+        function cancelSend() {
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
             }
+            isWaitingForSend = false;
+            pendingSend = null;
+            const timerContainer = document.getElementById('timerContainer');
+            timerContainer.classList.remove('active');
+            const sendBtn = document.getElementById('globalSendBtn');
+            sendBtn.classList.remove('disabled');
+            updateStatus('Envoi annulé');
+            showToast('❌ Envoi annulé', true);
         }
-
-        async function login() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            
-            if (!username || !password) {
-                showNotification('Veuillez remplir tous les champs', 'error');
+        
+        function startCountdown(sendFunction) {
+            if (isWaitingForSend) {
+                showToast('Un envoi est déjà en cours', true);
                 return;
             }
             
-            showLoading('Connexion en cours...');
+            pendingSend = sendFunction;
+            isWaitingForSend = true;
+            countdownSeconds = 10;
             
-            try {
-                // Essayer d'abord l'authentification Supabase
-                const { data, error } = await supabaseClient.auth.signInWithPassword({
-                    email: username + '@notecam.com', // ou votre logique d'email
-                    password: password
-                });
+            const timerContainer = document.getElementById('timerContainer');
+            const timerText = document.getElementById('timerText');
+            const progressFill = document.getElementById('progressFill');
+            
+            timerContainer.classList.add('active');
+            const sendBtn = document.getElementById('globalSendBtn');
+            sendBtn.classList.add('disabled');
+            
+            function updateTimer() {
+                timerText.innerHTML = `⏳ Envoi dans ${countdownSeconds} secondes...`;
+                const progressPercent = ((10 - countdownSeconds) / 10) * 100;
+                progressFill.style.width = progressPercent + '%';
                 
-                if (error) {
-                    // Fallback: vérifier dans la table users
-                    const { data: userData, error: userError } = await supabaseClient
-                        .from('users')
-                        .select('*')
-                        .eq('username', username)
-                        .eq('password', password)
-                        .single();
-                    
-                    if (userError || !userData) {
-                        throw new Error('Identifiants incorrects');
-                    }
-                    
-                    // Créer une session manuelle
-                    await handleManualLogin(userData);
-                    
-                } else {
-                    // Authentification Supabase réussie
-                    currentSession = data.session;
-                    await loadUserProfile(data.user.id);
+                if (countdownSeconds <= 0) {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                    timerContainer.classList.remove('active');
+                    sendBtn.classList.remove('disabled');
+                    isWaitingForSend = false;
+                    pendingSend();
+                    pendingSend = null;
                 }
-                
-                hideLoading();
-                showNotification('Connexion réussie', 'success');
-                
-            } catch (error) {
-                console.error('Erreur connexion:', error);
-                showNotification('Identifiants incorrects', 'error');
-                hideLoading();
+                countdownSeconds--;
             }
-        }
-
-        async function handleManualLogin(userData) {
-            currentUser = {
-                id: userData.id,
-                username: userData.username,
-                name: userData.name,
-                role: userData.role,
-                team_id: userData.team_id,
-                email: userData.email,
-                settings: userData.settings || {}
-            };
             
-            // Sauvegarder dans localStorage
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            
-            // Mettre à jour l'interface
-            showUserInterface();
-            
-            // Mettre à jour l'activité
-            await updateUserActivity('login');
+            updateTimer();
+            countdownInterval = setInterval(updateTimer, 1000);
         }
+        
+        const bonjourStyle = '<b style="font-family: &quot;Freestyle Script&quot;, serif; font-size: 26.67px;"><span style="color: rgb(0, 0, 0);">Bonjour</span></b>';
+        const cordialementStyle = '<b style="font-family: &quot;Freestyle Script&quot;, serif; font-size: 26.67px;"><span style="color: rgb(0, 0, 0);">Cordialement</span></b>';
+        const twoEmptyLines = '</p><p>&nbsp;</p><p>&nbsp;</p>';
 
-        async function loadUserProfile(userId) {
-            try {
-                const { data: userData, error } = await supabaseClient
-                    .from('users')
-                    .select('*')
-                    .eq('id', userId)
-                    .single();
-                
-                if (error) throw error;
-                
-                currentUser = {
-                    id: userData.id,
-                    username: userData.username,
-                    name: userData.name,
-                    role: userData.role,
-                    team_id: userData.team_id,
-                    email: userData.email,
-                    settings: userData.settings || {}
-                };
-                
-                // Sauvegarder dans localStorage
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                
-                // Mettre à jour l'interface
-                showUserInterface();
-                
-                // Mettre à jour l'activité
-                await updateUserActivity('login');
-                
-            } catch (error) {
-                console.error('Erreur chargement profil:', error);
-                showNotification('Erreur chargement profil', 'error');
-            }
+        const templates = [ 
+            { to: "hichamverne@gmail.com", cc: "hichamverne@gmail.com,hichamverne@gmail.com", subject: " Activation Bloquée // ", body: "<p>" + bonjourStyle + ",</p>" + twoEmptyLines + "<p>-</p><p>mac : #mac</p><p>Gpon : #Gpon</p><p>-</p>" + twoEmptyLines + "<p>" + cordialementStyle + "</p>" },
+            { to: "hichamverne@gmail.com", cc: "hichamverne@gmail.com,hichamverne@gmail.com", subject: " Correction Adresse // ", body: "<p>" + bonjourStyle + ",</p>" + twoEmptyLines + "<p>-</p><p>Adresse d'installation :</p><p>Adresse Exacte :</p><p>-</p>" + twoEmptyLines + "<p>" + cordialementStyle + "</p>" },
+            { to: "hichamverne@gmail.com", cc: "hichamverne@gmail.com,hichamverne@gmail.com", subject: " Correction ID // ", body: "<p>" + bonjourStyle + ",</p>" + twoEmptyLines + "<p>-</p><p>Login id : #Login</p><p>SIP : #SIP</p><p>-</p>" + twoEmptyLines + "<p>" + cordialementStyle + "</p>" },
+            { to: "hichamverne@gmail.com", cc: "hichamverne@gmail.com,hichamverne@gmail.com", subject: " Activation Déménagement // ", body: "<p>" + bonjourStyle + ",</p>" + twoEmptyLines + "<p>-</p><p>mac : #mac</p><p>Gpon : #Gpon</p><p>-</p>" + twoEmptyLines + "<p>" + cordialementStyle + "</p>" },
+            { to: "hichamverne@gmail.com", cc: "hichamverne@gmail.com,hichamverne@gmail.com", subject: " Activation Déménagement même Port // ", body: "<p>" + bonjourStyle + ",</p>" + twoEmptyLines + "<p>-</p><p>mac : #mac</p><p>Gpon : #Gpon</p><p>-</p>" + twoEmptyLines + "<p>" + cordialementStyle + "</p>" },
+            { to: "hichamverne@gmail.com", cc: "hichamverne@gmail.com,hichamverne@gmail.com", subject: " Activation Déménagement Non même Port // ", body: "<p>" + bonjourStyle + ",</p>" + twoEmptyLines + "<p>-</p><p>mac : #mac</p><p>Gpon : #Gpon</p><p>-</p>" + twoEmptyLines + "<p>" + cordialementStyle + "</p>" },
+            { to: "hichamverne@gmail.com", cc: "hichamverne@gmail.com,hichamverne@gmail.com", subject: " Activation Porta // ", body: "<p>" + bonjourStyle + ",</p>" + twoEmptyLines + "<p>-</p>" + twoEmptyLines + "<p>" + cordialementStyle + "</p>" },
+            { to: "hichamverne@gmail.com", cc: "hichamverne@gmail.com,hichamverne@gmail.com", subject: " Demande Accès // ", body: "<p>" + bonjourStyle + ",</p>" + twoEmptyLines + "<p>-</p><p>client : </p><p>Adresse d'installation: </p><p>Nom de technician : SAID HANDI</p><p>CIN : HH113083</p><p>-</p>" + twoEmptyLines + "<p>" + cordialementStyle + "</p>" },
+            { to: "hichamverne@gmail.com", cc: "hichamverne@gmail.com", subject: "DEMANDE DE CREATION POUR COMPTE OGIF", body: "<p>" + bonjourStyle + ",</p>" + twoEmptyLines + "<p>-</p><p>Merci d'ajouter ce nouveau technicien sur OGIF</p><p>Ses informations :</p><p>Nom et prénom : </p><p>Numéro de téléphone : </p><p>CIN : </p><p>Kchokrallah@vernegroup.com   //  PR: PR04643</p><p>-</p>" + twoEmptyLines + "<p>" + cordialementStyle + "</p>" }
+        ];
+
+        const templateNames = ["Activation Bloquée", "Correction Adresse", "Correction ID", "Activation Déménagement", "Déménagement même Port", "Déménagement Non même Port", "Activation Porta", "Demande Accès", "DEMANDE OGIF"];
+
+        const toField = document.getElementById('toField');
+        const ccField = document.getElementById('ccField');
+        const subjectField = document.getElementById('subjectField');
+        const richEditor = document.getElementById('richEditor');
+        const numberRequirementBadge = document.getElementById('numberRequirementBadge');
+        
+        let currentTemplateIndex = 0;
+        let extractedData = { mac: null, gpon: null, sip: null, login: null };
+        let originalImageUrls = new Map();
+        let activeSelectionImage = null;
+        let selectionRect = null;
+        let isSelecting = false;
+        let startX, startY;
+        let currentActiveImage = null;
+
+        const allTemplateRects = document.querySelectorAll('.template-rect');
+        
+        loadHistory();
+        
+        function setActiveTemplate(index) {
+            allTemplateRects.forEach((rect, i) => {
+                if (parseInt(rect.dataset.template) === index) rect.classList.add('active');
+                else rect.classList.remove('active');
+            });
         }
-
-        async function updateUserActivity(action) {
-            if (!currentUser || !supabaseClient) return;
-            
-            try {
-                await supabaseClient
-                    .from('user_activity')
-                    .insert({
-                        user_id: currentUser.id,
-                        username: currentUser.username,
-                        action: action,
-                        timestamp: new Date().toISOString(),
-                        team_id: currentUser.team_id
-                    });
-                
-                await supabaseClient
-                    .from('users')
-                    .update({ 
-                        last_active: new Date().toISOString(),
-                        last_action: action
-                    })
-                    .eq('id', currentUser.id);
-                    
-            } catch (error) {
-                console.error('Erreur mise à jour activité:', error);
-            }
-        }
-
-        async function logout() {
-            try {
-                if (supabaseClient) {
-                    await supabaseClient.auth.signOut();
-                }
-                
-                if (realtimeSubscription) {
-                    supabaseClient.removeChannel(realtimeSubscription);
-                }
-                
-                // Arrêter les intervalles
-                if (syncInterval) clearInterval(syncInterval);
-                if (autoSaveInterval) clearInterval(autoSaveInterval);
-                
-                // Désactiver la caméra
-                if (cameraStream) {
-                    cameraStream.getTracks().forEach(track => track.stop());
-                    cameraStream = null;
-                }
-                
-                // Réinitialiser les variables
-                currentUser = null;
-                currentSession = null;
-                selectedArea = null;
-                selectedNumber = null;
-                selectedNumberAfter = null;
-                beforePhotos = Array(5).fill(null);
-                afterPhotos = Array(5).fill(null);
-                tempReport = null;
-                
-                // Nettoyer le localStorage
-                localStorage.removeItem('currentUser');
-                
-                // Masquer tous les panneaux
-                document.getElementById('adminPanel').style.display = 'none';
-                document.getElementById('employeePanel').style.display = 'none';
-                document.getElementById('reportsPanel').style.display = 'none';
-                document.getElementById('loginPage').style.display = 'block';
-                
-                // Masquer le badge temps réel
-                document.getElementById('realTimeBadge').style.display = 'none';
-                
-                showNotification('Déconnexion réussie', 'success');
-                updateSyncStatus('déconnecté', 'Non connecté');
-                
-            } catch (error) {
-                console.error('Erreur déconnexion:', error);
-                showNotification('Erreur lors de la déconnexion', 'error');
-            }
-        }
-
-        // ========== GESTION INTERFACE ==========
-        function showUserInterface() {
-            document.getElementById('loginPage').style.display = 'none';
-            
-            if (currentUser.role === 'admin' || currentUser.role === 'supervisor') {
-                // Afficher panneau admin
-                document.getElementById('adminPanel').style.display = 'block';
-                document.getElementById('employeePanel').style.display = 'none';
-                document.getElementById('reportsPanel').style.display = 'none';
-                
-                // Mettre à jour l'interface admin
-                updateAdminInterface();
-                loadAdminData();
-                
+        
+        function updateBadgeVisibility(templateIndex) {
+            if (templateIndex === 6) {
+                numberRequirementBadge.textContent = "SIP OPTIONNEL";
+                numberRequirementBadge.className = "number-optional-badge";
+            } else if (templateIndex === 8) {
+                numberRequirementBadge.style.display = 'none';
             } else {
-                // Afficher panneau employé
-                document.getElementById('adminPanel').style.display = 'none';
-                document.getElementById('employeePanel').style.display = 'block';
-                document.getElementById('reportsPanel').style.display = 'none';
-                
-                // Mettre à jour l'interface employé
-                updateEmployeeInterface();
-                loadEmployeeData();
-                
-                // Activer la caméra automatiquement
-                setTimeout(activateCameraAutomatically, 1000);
+                numberRequirementBadge.textContent = "SIP OBLIGATOIRE";
+                numberRequirementBadge.className = "number-required-badge";
+                numberRequirementBadge.style.display = 'inline-block';
             }
-            
-            // Mettre à jour la barre d'état
-            updateStatusBar();
         }
-
-        function updateAdminInterface() {
-            document.getElementById('employeeNameText').textContent = currentUser.name;
-            document.getElementById('welcomeMessage').innerHTML = `
-                <i class="fas fa-user-shield"></i> Bienvenue, ${currentUser.name}
-            `;
-            document.getElementById('userFirstName').textContent = currentUser.name.split(' ')[0];
-            
-            // Charger les statistiques
-            loadStats();
+        
+        function isValidNumber(numStr) {
+            const cleaned = numStr.toString().trim();
+            return /^(05|5)[0-9]{7,8}$/.test(cleaned);
         }
-
-        function updateEmployeeInterface() {
-            document.getElementById('employeeName').innerHTML = `
-                <i class="fas fa-user"></i> ${currentUser.name}
-                <span class="badge badge-blue" style="margin-left: 10px;">Employé</span>
-            `;
-            document.getElementById('welcomeMessage').innerHTML = `
-                <i class="fas fa-user-circle"></i> Bonjour, ${currentUser.name}
-            `;
-            document.getElementById('userFirstName').textContent = currentUser.name.split(' ')[0];
-            
-            // Charger les zones assignées
-            loadAssignedAreas();
+        
+        function autoReplacePlaceholders() {
+            let content = richEditor.innerHTML;
+            let changed = false;
+            if (extractedData.mac) { content = content.replace(/#mac/gi, extractedData.mac); changed = true; }
+            if (extractedData.gpon) { content = content.replace(/#Gpon/gi, extractedData.gpon); changed = true; }
+            if (extractedData.sip) {
+                content = content.replace(/#SIP/gi, extractedData.sip);
+                changed = true;
+            }
+            if (extractedData.login) { content = content.replace(/#Login/gi, extractedData.login); changed = true; }
+            if (changed) { richEditor.innerHTML = content; }
         }
-
-        // ========== GESTION DONNÉES CLOUD ==========
-        async function loadAdminData() {
-            showLoading('Chargement des données...');
-            
+        
+        const patterns = {
+            mac: /([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}/gi,
+            gpon: /([A-Z0-9]{16})/gi,
+            sip: /(05[0-9]{7,8}|5[0-9]{8})/g,
+            login: /0[0-9]{8,9}/g
+        };
+        
+        function analyzeExtractedText(text) {
+            const macMatches = [...text.matchAll(patterns.mac)];
+            const gponMatches = [...text.matchAll(patterns.gpon)];
+            const sipMatches = [...text.matchAll(patterns.sip)];
+            const loginMatches = [...text.matchAll(patterns.login)];
+            if (macMatches.length) extractedData.mac = macMatches[0][0];
+            if (gponMatches.length) extractedData.gpon = gponMatches[0][0];
+            if (sipMatches.length) extractedData.sip = sipMatches[0][0];
+            if (loginMatches.length) extractedData.login = loginMatches[0][0];
+            return extractedData;
+        }
+        
+        async function extractTextFromArea(imgElement, rect) {
             try {
-                // Charger les utilisateurs
-                await loadUsers();
-                
-                // Charger les zones
-                await loadAreas();
-                
-                // Charger les rapports récents
-                await loadRecentReports();
-                
-                // Charger les statistiques
-                await loadStats();
-                
-                hideLoading();
-                
-            } catch (error) {
-                console.error('Erreur chargement données admin:', error);
-                showNotification('Erreur chargement données', 'error');
-                hideLoading();
-            }
-        }
-
-        async function loadEmployeeData() {
-            try {
-                // Charger les zones assignées
-                await loadAssignedAreas();
-                
-                // Charger les rapports personnels
-                await loadMyReports();
-                
-                // Vérifier s'il y a un rapport en cours
-                await checkPendingReport();
-                
-            } catch (error) {
-                console.error('Erreur chargement données employé:', error);
-            }
-        }
-
-        async function loadUsers() {
-            if (!supabaseClient) return;
-            
-            try {
-                const { data, error } = await supabaseClient
-                    .from('users')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-                
-                if (error) throw error;
-                
-                // Mettre à jour la liste des utilisateurs
-                updateUsersList(data);
-                
-            } catch (error) {
-                console.error('Erreur chargement utilisateurs:', error);
-            }
-        }
-
-        async function loadAreas() {
-            if (!supabaseClient) return;
-            
-            try {
-                const { data, error } = await supabaseClient
-                    .from('areas')
-                    .select('*')
-                    .eq('is_active', true)
-                    .order('name');
-                
-                if (error) throw error;
-                
-                // Mettre à jour la liste des zones
-                updateAreasList(data);
-                
-            } catch (error) {
-                console.error('Erreur chargement zones:', error);
-            }
-        }
-
-        async function loadAssignedAreas() {
-            if (!currentUser || !supabaseClient) return;
-            
-            try {
-                const { data, error } = await supabaseClient
-                    .from('user_areas')
-                    .select(`
-                        *,
-                        areas (*)
-                    `)
-                    .eq('user_id', currentUser.id)
-                    .eq('is_active', true);
-                
-                if (error) throw error;
-                
-                // Mettre à jour le sélecteur de zones
-                updateAreaSelect(data);
-                
-            } catch (error) {
-                console.error('Erreur chargement zones assignées:', error);
-            }
-        }
-
-        async function loadRecentReports() {
-            if (!supabaseClient) return;
-            
-            try {
-                const fifteenDaysAgo = new Date();
-                fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - RETENTION_DAYS);
-                
-                const { data, error } = await supabaseClient
-                    .from('reports')
-                    .select(`
-                        *,
-                        users (name),
-                        areas (name, code)
-                    `)
-                    .gte('created_at', fifteenDaysAgo.toISOString())
-                    .order('created_at', { ascending: false })
-                    .limit(20);
-                
-                if (error) throw error;
-                
-                // Mettre à jour la liste des rapports
-                updateReportsList(data);
-                
-            } catch (error) {
-                console.error('Erreur chargement rapports:', error);
-            }
-        }
-
-        async function loadStats() {
-            if (!supabaseClient) return;
-            
-            try {
-                const today = new Date().toISOString().split('T')[0];
-                
-                // Compter les utilisateurs actifs aujourd'hui
-                const { data: activeUsers, error: usersError } = await supabaseClient
-                    .from('user_activity')
-                    .select('user_id', { count: 'exact' })
-                    .gte('timestamp', today)
-                    .eq('action', 'login');
-                
-                // Compter les rapports aujourd'hui
-                const { data: todayReports, error: reportsError } = await supabaseClient
-                    .from('reports')
-                    .select('id', { count: 'exact' })
-                    .gte('created_at', today);
-                
-                // Compter le total des photos
-                const { data: totalPhotos, error: photosError } = await supabaseClient
-                    .from('report_photos')
-                    .select('id', { count: 'exact' })
-                    .gte('created_at', new Date(Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString());
-                
-                if (!usersError && !reportsError && !photosError) {
-                    // Mettre à jour les statistiques
-                    document.getElementById('activeUsers').textContent = activeUsers?.count || 0;
-                    document.getElementById('todayReports').textContent = todayReports?.count || 0;
-                    document.getElementById('totalPhotos').textContent = totalPhotos?.count || 0;
-                    
-                    // Calculer l'utilisation du stockage (estimation)
-                    const storageUsed = ((totalPhotos?.count || 0) * 0.5).toFixed(1); // 0.5MB par photo
-                    document.getElementById('storageUsed').textContent = storageUsed + ' MB';
-                    
-                    const storagePercent = Math.min(((storageUsed / 1000) * 100), 100).toFixed(1);
-                    document.getElementById('storagePercent').textContent = storagePercent + '%';
-                    document.getElementById('storageFill').style.width = storagePercent + '%';
-                    document.getElementById('storageValue').textContent = storageUsed + ' MB';
-                }
-                
-            } catch (error) {
-                console.error('Erreur chargement statistiques:', error);
-            }
-        }
-
-        // ========== GESTION PHOTOS ==========
-        async function capturePhoto(index, type) {
-            if (!isCameraActive || !cameraStream) {
-                showNotification('La caméra n\'est pas activée', 'error');
-                return;
-            }
-            
-            showLoading('Capture en cours...');
-            
-            try {
-                // Créer un canvas pour la capture
-                const video = document.createElement('video');
-                video.srcObject = cameraStream;
-                
-                await new Promise((resolve) => {
-                    video.onloadedmetadata = () => {
-                        video.play();
-                        resolve();
-                    };
-                });
-                
                 const canvas = document.createElement('canvas');
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                const context = canvas.getContext('2d');
-                
-                // Dessiner la vidéo sur le canvas
-                context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                
-                // Ajouter les informations
-                addPhotoInfo(context, canvas.width, canvas.height, type, index);
-                
-                // Convertir en blob
-                canvas.toBlob(async (blob) => {
-                    // Créer une URL pour l'aperçu
-                    const imageUrl = URL.createObjectURL(blob);
-                    
-                    // Sauvegarder la photo localement
-                    if (type === 'before') {
-                        beforePhotos[index] = {
-                            url: imageUrl,
-                            blob: blob,
-                            timestamp: new Date().toISOString(),
-                            index: index,
-                            type: 'before'
-                        };
-                    } else {
-                        afterPhotos[index] = {
-                            url: imageUrl,
-                            blob: blob,
-                            timestamp: new Date().toISOString(),
-                            index: index,
-                            type: 'after'
-                        };
-                    }
-                    
-                    // Mettre à jour l'aperçu
-                    updatePhotoPreview(index, type, imageUrl);
-                    
-                    // Mettre à jour le compteur
-                    updatePhotoCount(type);
-                    
-                    // Effet flash
-                    showCaptureFlash();
-                    
-                    hideLoading();
-                    showNotification('Photo capturée', 'success');
-                    
-                    // Sauvegarder automatiquement
-                    await autoSavePhoto(blob, type, index);
-                    
-                }, 'image/jpeg', 0.9);
-                
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                img.src = imgElement.src;
+                await new Promise((resolve) => { img.onload = resolve; });
+                const scaleX = img.naturalWidth / imgElement.clientWidth;
+                const scaleY = img.naturalHeight / imgElement.clientHeight;
+                const cropX = rect.left * scaleX;
+                const cropY = rect.top * scaleY;
+                const cropWidth = rect.width * scaleX;
+                const cropHeight = rect.height * scaleY;
+                canvas.width = cropWidth;
+                canvas.height = cropHeight;
+                ctx.drawImage(img, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+                const { data: { text } } = await Tesseract.recognize(canvas, 'fra+eng', { logger: () => {} });
+                return text.trim();
             } catch (error) {
-                console.error('Erreur capture photo:', error);
-                showNotification('Erreur lors de la capture', 'error');
-                hideLoading();
+                console.error('Erreur extraction zone:', error);
+                return null;
             }
         }
-
-        function addPhotoInfo(context, width, height, type, index) {
-            context.save();
-            
-            // Paramètres du texte
-            const fontSize = 16;
-            const lineHeight = fontSize + 4;
-            const padding = 10;
-            context.font = `bold ${fontSize}px Arial`;
-            context.fillStyle = 'rgba(255, 255, 255, 0.8)';
-            context.strokeStyle = 'rgba(0, 0, 0, 0.5)';
-            context.lineWidth = 2;
-            context.textAlign = 'left';
-            
-            // Informations à afficher
-            const info = [
-                `NoteCam Cloud - ${type.toUpperCase()} ${index + 1}`,
-                `Zone: ${selectedArea?.name || 'Non sélectionnée'}`,
-                `Code: ${selectedArea?.code || 'N/A'}`,
-                `Date: ${new Date().toLocaleString()}`,
-                `GPS: ${getCurrentLocation().lat.toFixed(6)}, ${getCurrentLocation().lng.toFixed(6)}`,
-                `Utilisateur: ${currentUser?.name || 'N/A'}`
-            ];
-            
-            // Calculer la hauteur totale
-            const totalHeight = info.length * lineHeight + padding * 2;
-            
-            // Dessiner le fond
-            context.fillStyle = 'rgba(0, 0, 0, 0.7)';
-            context.fillRect(0, height - totalHeight, width, totalHeight);
-            
-            // Dessiner le texte
-            context.fillStyle = 'white';
-            info.forEach((line, i) => {
-                context.fillText(line, padding, height - totalHeight + padding + (i * lineHeight));
-            });
-            
-            context.restore();
-        }
-
-        async function autoSavePhoto(blob, type, index) {
-            if (!supabaseClient || !currentUser || !selectedArea) return;
-            
-            try {
-                // Générer un nom de fichier unique
-                const fileName = `${currentUser.id}_${selectedArea.code}_${type}_${index}_${Date.now()}.jpg`;
-                
-                // Télécharger vers Supabase Storage
-                const { data, error } = await supabaseClient.storage
-                    .from('photos')
-                    .upload(fileName, blob, {
-                        cacheControl: '3600',
-                        upsert: false
-                    });
-                
-                if (error) throw error;
-                
-                // Obtenir l'URL publique
-                const { data: urlData } = supabaseClient.storage
-                    .from('photos')
-                    .getPublicUrl(fileName);
-                
-                console.log('Photo sauvegardée sur le cloud:', urlData.publicUrl);
-                
-                // Enregistrer dans la base de données
-                await supabaseClient
-                    .from('temp_photos')
-                    .insert({
-                        user_id: currentUser.id,
-                        area_id: selectedArea.id,
-                        type: type,
-                        index: index,
-                        file_name: fileName,
-                        url: urlData.publicUrl,
-                        uploaded_at: new Date().toISOString()
-                    });
-                
-                showNotification('Photo sauvegardée sur le cloud', 'success');
-                
-            } catch (error) {
-                console.error('Erreur sauvegarde photo:', error);
-                // La photo sera sauvegardée lors de la prochaine synchronisation
-                addToSyncQueue('photo', { blob, type, index });
+        
+        function enableSelectionOnImage(imgElement) {
+            if (!imgElement) { showToast('❌ Aucune image', true); return; }
+            if (activeSelectionImage === imgElement && selectionRect) { showToast('✅ Mode sélection déjà actif'); return; }
+            if (selectionRect && selectionRect.parentNode) selectionRect.remove();
+            activeSelectionImage = imgElement;
+            let container = imgElement.parentElement;
+            if (!container.classList.contains('image-container')) {
+                container = document.createElement('div');
+                container.className = 'image-container';
+                imgElement.parentNode.insertBefore(container, imgElement);
+                container.appendChild(imgElement);
             }
-        }
-
-        // ========== GESTION RAPPORTS ==========
-        async function sendBeforePhotos() {
-            if (!validateBeforeReport()) {
-                showNotification('Veuillez compléter tous les champs', 'error');
-                return;
-            }
+            selectionRect = document.createElement('div');
+            selectionRect.className = 'selection-rect';
+            container.appendChild(selectionRect);
             
-            showLoading('Envoi des photos AVANT...');
-            
-            try {
-                // Créer le rapport
-                const report = {
-                    id: generateReportId(),
-                    user_id: currentUser.id,
-                    area_id: selectedArea.id,
-                    number_before: selectedNumber,
-                    status: 'before_only',
-                    step: 'before',
-                    created_at: new Date().toISOString(),
-                    team_id: currentUser.team_id
+            const startSelection = (e) => {
+                if (e.target !== imgElement && !container.contains(e.target)) return;
+                e.preventDefault();
+                e.stopPropagation();
+                isSelecting = true;
+                const rect = container.getBoundingClientRect();
+                startX = (e.clientX - rect.left);
+                startY = (e.clientY - rect.top);
+                selectionRect.style.left = startX + 'px';
+                selectionRect.style.top = startY + 'px';
+                selectionRect.style.width = '0px';
+                selectionRect.style.height = '0px';
+                selectionRect.classList.add('active');
+            };
+            const drawSelection = (e) => {
+                if (!isSelecting) return;
+                e.preventDefault();
+                const rect = container.getBoundingClientRect();
+                let currentX = e.clientX - rect.left;
+                let currentY = e.clientY - rect.top;
+                let width = currentX - startX;
+                let height = currentY - startY;
+                let left = startX, top = startY;
+                if (width < 0) { left = startX + width; width = Math.abs(width); }
+                if (height < 0) { top = startY + height; height = Math.abs(height); }
+                selectionRect.style.left = left + 'px';
+                selectionRect.style.top = top + 'px';
+                selectionRect.style.width = width + 'px';
+                selectionRect.style.height = height + 'px';
+            };
+            const endSelection = async (e) => {
+                if (!isSelecting) return;
+                e.preventDefault();
+                isSelecting = false;
+                const rectElem = selectionRect.getBoundingClientRect();
+                const imgRect = imgElement.getBoundingClientRect();
+                const relativeRect = {
+                    left: Math.max(0, rectElem.left - imgRect.left),
+                    top: Math.max(0, rectElem.top - imgRect.top),
+                    width: Math.min(imgRect.width, rectElem.width),
+                    height: Math.min(imgRect.height, rectElem.height)
                 };
-                
-                // Sauvegarder sur Supabase
-                const { data, error } = await supabaseClient
-                    .from('reports')
-                    .insert(report)
-                    .select()
-                    .single();
-                
-                if (error) throw error;
-                
-                // Sauvegarder les photos
-                await saveReportPhotos(data.id, 'before', beforePhotos);
-                
-                // Mettre à jour l'interface
-                currentStep = 2;
-                tempReport = data;
-                updateUIForCurrentStep();
-                
-                hideLoading();
-                showNotification('Photos AVANT envoyées avec succès', 'success');
-                updateSyncStatus('synchronisé', 'Rapport sauvegardé');
-                
-                // Mettre à jour l'activité
-                await updateUserActivity('report_before');
-                
-            } catch (error) {
-                console.error('Erreur envoi photos AVANT:', error);
-                showNotification('Erreur lors de l\'envoi', 'error');
-                hideLoading();
-                
-                // Sauvegarder localement pour synchronisation ultérieure
-                saveReportLocally('before');
-            }
+                if (relativeRect.width > 10 && relativeRect.height > 10) {
+                    updateStatus('Extraction de la zone...');
+                    const extractedText = await extractTextFromArea(imgElement, relativeRect);
+                    if (extractedText && extractedText.length > 0) {
+                        analyzeExtractedText(extractedText);
+                        autoReplacePlaceholders();
+                        showToast(`✅ Texte extrait`);
+                    } else { showToast('❌ Aucun texte détecté', true); }
+                }
+                selectionRect.classList.remove('active');
+                selectionRect.style.width = '0px';
+                selectionRect.style.height = '0px';
+            };
+            container.removeEventListener('mousedown', startSelection);
+            window.removeEventListener('mousemove', drawSelection);
+            window.removeEventListener('mouseup', endSelection);
+            container.addEventListener('mousedown', startSelection);
+            window.addEventListener('mousemove', drawSelection);
+            window.addEventListener('mouseup', endSelection);
+            showToast('✂️ Mode sélection actif');
         }
-
-        async function sendAfterPhotos() {
-            if (!validateAfterReport()) {
-                showNotification('Veuillez compléter tous les champs', 'error');
-                return;
+        
+        async function autoExtractFullImage(imgElement) {
+            updateStatus('Extraction OCR complète...');
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                img.src = imgElement.src;
+                await new Promise(resolve => { img.onload = resolve; });
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                const { data: { text } } = await Tesseract.recognize(canvas, 'fra+eng', { logger: () => {} });
+                analyzeExtractedText(text);
+                autoReplacePlaceholders();
+                updateStatus('Extraction terminée');
+                showToast('🔍 Extraction automatique réussie');
+            } catch(e) { console.error(e); updateStatus('Erreur extraction', true); showToast('Erreur OCR', true); }
+        }
+        
+        async function rotateImage(imgElement) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            img.src = imgElement.src;
+            await new Promise(resolve => { img.onload = resolve; });
+            canvas.width = img.height;
+            canvas.height = img.width;
+            ctx.translate(canvas.width/2, canvas.height/2);
+            ctx.rotate(-90 * Math.PI/180);
+            ctx.drawImage(img, -img.width/2, -img.height/2);
+            canvas.toBlob(blob => { 
+                const rotatedUrl = URL.createObjectURL(blob);
+                if (!originalImageUrls.has(imgElement)) originalImageUrls.set(imgElement, imgElement.src);
+                imgElement.src = rotatedUrl;
+                showToast('Image pivotée');
+            }, 'image/png');
+        }
+        
+        function getActiveImage() {
+            const images = document.querySelectorAll('#richEditor img');
+            if (images.length === 0) return null;
+            if (currentActiveImage && document.body.contains(currentActiveImage)) return currentActiveImage;
+            currentActiveImage = images[images.length - 1];
+            return currentActiveImage;
+        }
+        
+        async function addImageAndKeepOriginalSize(dataUrl) {
+            const img = document.createElement('img');
+            img.src = dataUrl;
+            img.style.cursor = 'crosshair';
+            img.style.maxWidth = '100%';
+            img.style.height = 'auto';
+            img.style.display = 'block';
+            img.style.margin = '0 auto';
+            await new Promise(r => { img.onload = r; });
+            originalImageUrls.set(img, dataUrl);
+            showToast('🖼️ Image ajoutée');
+            const dashPos = findLastDashPosition();
+            if (dashPos.node) {
+                const textNode = dashPos.node;
+                const text = textNode.textContent;
+                const dashIdx = dashPos.index;
+                const before = text.substring(0, dashIdx+1);
+                const after = text.substring(dashIdx+1);
+                textNode.textContent = before;
+                if (after.length) {
+                    const afterNode = document.createTextNode(after);
+                    textNode.parentNode.insertBefore(afterNode, textNode.nextSibling);
+                }
+                textNode.parentNode.insertBefore(img, textNode.nextSibling);
+            } else { richEditor.appendChild(img); }
+            const container = document.createElement('div');
+            container.className = 'image-container';
+            img.parentNode.insertBefore(container, img);
+            container.appendChild(img);
+            currentActiveImage = img;
+            setTimeout(() => autoExtractFullImage(img), 300);
+        }
+        
+        function findLastDashPosition() {
+            const walker = document.createTreeWalker(richEditor, NodeFilter.SHOW_TEXT, {
+                acceptNode: (node) => node.textContent.includes('-') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP
+            });
+            let lastNode = null, lastIdx = -1;
+            while(walker.nextNode()) {
+                const node = walker.currentNode;
+                const idx = node.textContent.lastIndexOf('-');
+                if(idx !== -1) { lastNode = node; lastIdx = idx; }
+            }
+            return { node: lastNode, index: lastIdx };
+        }
+        
+        function loadTemplate(index) {
+            const t = templates[index];
+            toField.value = t.to;
+            ccField.value = t.cc;
+            subjectField.value = t.subject;
+            richEditor.innerHTML = t.body;
+            updateBadgeVisibility(index);
+            currentTemplateIndex = index;
+            setActiveTemplate(index);
+            extractedData = { mac: null, gpon: null, sip: null, login: null };
+            originalImageUrls.clear();
+            if (selectionRect) selectionRect.remove();
+            activeSelectionImage = null;
+            const sipFromSubject = extractSipFromSubject();
+            if (sipFromSubject) {
+                extractedData.sip = sipFromSubject;
+                autoReplacePlaceholders();
+            }
+            showToast(`📁 Modèle: ${allTemplateRects[index]?.querySelector('span')?.innerText || ''}`);
+        }
+        
+        async function executeSendEmail() {
+            if(!toField.value.trim()) { showToast('Destinataire requis', true); return false; }
+            if(!smtpUser || !smtpPass) { showToast('Identifiants non chargés', true); return false; }
+            
+            let sipNumber = extractSipFromSubject();
+            if (!sipNumber && currentTemplateIndex !== 6 && currentTemplateIndex !== 8) {
+                showToast('❌ Aucun numéro SIP trouvé dans l\'objet', true);
+                return false;
             }
             
-            if (!tempReport) {
-                showNotification('Aucun rapport AVANT trouvé', 'error');
-                return;
-            }
+            let html = richEditor.innerHTML;
+            const div = document.createElement('div');
+            div.innerHTML = html;
+            div.querySelectorAll('.image-container').forEach(cont => { const img = cont.querySelector('img'); if(img) cont.parentNode.replaceChild(img, cont); });
+            html = div.innerHTML;
             
-            showLoading('Envoi des photos APRÈS...');
+            const sendBtnElem = document.getElementById('globalSendBtn');
+            sendBtnElem.classList.add('disabled');
+            updateStatus('Envoi en cours...');
             
             try {
-                // Mettre à jour le rapport
-                const { data, error } = await supabaseClient
-                    .from('reports')
-                    .update({
-                        number_after: selectedNumberAfter,
-                        status: 'complete',
-                        step: 'complete',
-                        completed_at: new Date().toISOString()
-                    })
-                    .eq('id', tempReport.id)
-                    .select()
-                    .single();
-                
-                if (error) throw error;
-                
-                // Sauvegarder les photos APRÈS
-                await saveReportPhotos(data.id, 'after', afterPhotos);
-                
-                // Générer le fichier de zone
-                await generateZoneFile(data.id);
-                
-                // Réinitialiser le formulaire
-                resetForm();
-                
-                hideLoading();
-                showNotification('Rapport complet envoyé avec succès', 'success');
-                updateSyncStatus('synchronisé', 'Rapport complet sauvegardé');
-                
-                // Mettre à jour l'activité
-                await updateUserActivity('report_complete');
-                
-            } catch (error) {
-                console.error('Erreur envoi photos APRÈS:', error);
-                showNotification('Erreur lors de l\'envoi', 'error');
-                hideLoading();
-                
-                // Sauvegarder localement pour synchronisation ultérieure
-                saveReportLocally('after');
-            }
-        }
-
-        async function saveReportPhotos(reportId, type, photos) {
-            if (!supabaseClient) return;
-            
-            const validPhotos = photos.filter(p => p !== null);
-            
-            for (const photo of validPhotos) {
-                try {
-                    // Télécharger la photo si elle n'existe pas déjà
-                    if (photo.blob && !photo.cloud_url) {
-                        const fileName = `${reportId}_${type}_${photo.index}_${Date.now()}.jpg`;
-                        
-                        const { data: uploadData, error: uploadError } = await supabaseClient.storage
-                            .from('report_photos')
-                            .upload(fileName, photo.blob);
-                        
-                        if (uploadError) throw uploadError;
-                        
-                        const { data: urlData } = supabaseClient.storage
-                            .from('report_photos')
-                            .getPublicUrl(fileName);
-                        
-                        photo.cloud_url = urlData.publicUrl;
-                    }
-                    
-                    // Sauvegarder dans la base de données
-                    await supabaseClient
-                        .from('report_photos')
-                        .insert({
-                            report_id: reportId,
-                            type: type,
-                            index: photo.index,
-                            url: photo.cloud_url || photo.url,
-                            created_at: photo.timestamp
-                        });
-                    
-                } catch (error) {
-                    console.error('Erreur sauvegarde photo rapport:', error);
-                    // Continuer avec les photos suivantes
-                }
-            }
-        }
-
-        // ========== FONCTIONS UTILITAIRES ==========
-        function showLoading(message) {
-            const overlay = document.getElementById('loadingOverlay');
-            overlay.style.display = 'flex';
-            if (message) {
-                overlay.querySelector('div:last-child').textContent = message;
-            }
-        }
-
-        function hideLoading() {
-            document.getElementById('loadingOverlay').style.display = 'none';
-        }
-
-        function showNotification(message, type = 'info') {
-            const notification = document.getElementById('notification');
-            
-            // Définir la couleur selon le type
-            const colors = {
-                success: '#2ea043',
-                error: '#ff6b6b',
-                warning: '#ffa500',
-                info: '#1a5fb4'
-            };
-            
-            notification.style.background = colors[type] || colors.info;
-            notification.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <i class="fas fa-${getNotificationIcon(type)}"></i>
-                    <span>${message}</span>
-                </div>
-            `;
-            notification.style.display = 'block';
-            
-            // Masquer après 3 secondes
-            setTimeout(() => {
-                notification.style.display = 'none';
-            }, 3000);
-        }
-
-        function getNotificationIcon(type) {
-            const icons = {
-                success: 'check-circle',
-                error: 'exclamation-circle',
-                warning: 'exclamation-triangle',
-                info: 'info-circle'
-            };
-            return icons[type] || 'info-circle';
-        }
-
-        function updateSyncStatus(status, message = '') {
-            const syncText = document.getElementById('syncText');
-            const syncIcon = document.getElementById('syncIcon');
-            const syncDetail = document.getElementById('syncStatusDetail');
-            
-            syncText.textContent = status;
-            
-            if (syncDetail) {
-                syncDetail.textContent = message;
-                syncDetail.className = status === 'synchronisé' ? 'sync-success' : 
-                                      status === 'erreur' ? 'sync-error' : '';
-            }
-            
-            // Mettre à jour l'icône
-            if (status === 'synchronisation') {
-                syncIcon.style.animation = 'spin 1s linear infinite';
-            } else {
-                syncIcon.style.animation = 'none';
-                syncIcon.className = status === 'synchronisé' ? 'fas fa-check-circle' :
-                                   status === 'erreur' ? 'fas fa-exclamation-circle' :
-                                   'fas fa-sync';
-            }
-        }
-
-        function updateCurrentTime() {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('fr-FR', { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                second: '2-digit'
-            });
-            document.getElementById('currentTime').textContent = timeString;
-        }
-
-        function updateStatusBar() {
-            const statusBar = document.getElementById('statusBar');
-            if (currentUser) {
-                statusBar.querySelector('div:first-child').innerHTML = `
-                    <i class="fas fa-cloud"></i> 
-                    NoteCam Cloud ● 
-                    <span id="currentTime">${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span> ●
-                    <span id="userStatus">${currentUser.name} (${currentUser.role})</span>
-                `;
-            }
-        }
-
-        function generateReportId() {
-            return 'RPT_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        }
-
-        function getCurrentLocation() {
-            // Simuler la localisation (à remplacer par l'API Geolocation)
-            return {
-                lat: 33.5731 + (Math.random() - 0.5) * 0.01,
-                lng: -7.5898 + (Math.random() - 0.5) * 0.01,
-                accuracy: Math.random() * 50 + 10,
-                timestamp: new Date().toISOString()
-            };
-        }
-
-        function validateBeforeReport() {
-            return selectedNumber !== null && 
-                   selectedArea !== null && 
-                   beforePhotos.filter(p => p !== null).length === 5;
-        }
-
-        function validateAfterReport() {
-            return selectedNumberAfter !== null && 
-                   afterPhotos.filter(p => p !== null).length === 5;
-        }
-
-        function updatePhotoPreview(index, type, url) {
-            const selector = type === 'before' ? '#photoBoxesContainer' : '#afterPhotoBoxesContainer';
-            const box = document.querySelector(`${selector} .photo-box[data-index="${index}"]`);
-            
-            if (box) {
-                box.classList.add('captured');
-                const preview = box.querySelector('.photo-preview');
-                if (preview) {
-                    preview.src = url;
-                }
-            }
-        }
-
-        function updatePhotoCount(type) {
-            const count = type === 'before' ? 
-                beforePhotos.filter(p => p !== null).length : 
-                afterPhotos.filter(p => p !== null).length;
-            
-            if (type === 'before') {
-                document.getElementById('beforePhotosCount').textContent = `${count}/5`;
-                document.getElementById('statusBefore').textContent = `${count}/5`;
-                document.getElementById('summaryBeforePhotos').textContent = `${count}/5`;
-                
-                // Activer/désactiver le bouton d'envoi
-                document.getElementById('sendBeforeBtn').disabled = !validateBeforeReport();
-                
-            } else {
-                document.getElementById('afterPhotosCount').textContent = `${count}/5`;
-                document.getElementById('statusAfter').textContent = `${count}/5`;
-                document.getElementById('summaryAfterPhotos').textContent = `${count}/5`;
-                
-                // Activer/désactiver le bouton d'envoi
-                document.getElementById('sendAfterBtn').disabled = !validateAfterReport();
-            }
-        }
-
-        function showCaptureFlash() {
-            const flash = document.getElementById('captureFlash');
-            flash.style.animation = 'captureFlash 300ms ease-out';
-            setTimeout(() => {
-                flash.style.animation = '';
-            }, 300);
-        }
-
-        function resetForm() {
-            // Réinitialiser les variables
-            selectedNumber = null;
-            selectedNumberAfter = null;
-            beforePhotos = Array(5).fill(null);
-            afterPhotos = Array(5).fill(null);
-            currentStep = 1;
-            tempReport = null;
-            
-            // Réinitialiser l'interface
-            updateUIForCurrentStep();
-            clearPhotoPreviews();
-            clearNumberSelections();
-            updatePhotoCount('before');
-            updatePhotoCount('after');
-            
-            showNotification('Formulaire réinitialisé', 'success');
-        }
-
-        function clearPhotoPreviews() {
-            document.querySelectorAll('.photo-box').forEach(box => {
-                box.classList.remove('captured');
-                const preview = box.querySelector('.photo-preview');
-                if (preview) {
-                    preview.src = '';
-                }
-            });
-        }
-
-        function clearNumberSelections() {
-            document.querySelectorAll('.number-btn').forEach(btn => {
-                btn.classList.remove('selected');
-            });
-            
-            document.getElementById('selectedNumberDisplay').textContent = 'Aucun';
-            document.getElementById('selectedNumberDisplayAfter').textContent = 'Aucun';
-            document.getElementById('statusNumber').textContent = '-';
-            document.getElementById('statusNumberAfter').textContent = '-';
-            document.getElementById('summaryNumber').textContent = '-';
-            document.getElementById('summaryNumberAfter').textContent = '-';
-            document.getElementById('completedBeforeNumber').textContent = '-';
-        }
-
-        function updateUIForCurrentStep() {
-            const step1 = document.getElementById('step1');
-            const step2 = document.getElementById('step2');
-            const backButton = document.getElementById('backToStep1Btn');
-            
-            if (currentStep === 1) {
-                // Étape 1: Photos AVANT
-                step1.classList.add('active');
-                step2.classList.remove('active');
-                step1.classList.remove('completed');
-                
-                document.getElementById('beforePhotosContainer').style.display = 'block';
-                document.getElementById('sendBeforeContainer').style.display = 'block';
-                document.getElementById('numberSelection').style.display = 'block';
-                document.getElementById('apresButtonContainer').style.display = 'none';
-                document.getElementById('afterPhotosContainer').style.display = 'none';
-                document.getElementById('numberSelectionAfter').style.display = 'none';
-                document.getElementById('sendAfterContainer').style.display = 'none';
-                
-                if (backButton) backButton.style.display = 'none';
-                
-            } else if (currentStep === 2) {
-                // Étape 2: Photos APRÈS
-                step1.classList.remove('active');
-                step1.classList.add('completed');
-                step2.classList.add('active');
-                
-                document.getElementById('beforePhotosContainer').style.display = 'none';
-                document.getElementById('sendBeforeContainer').style.display = 'none';
-                document.getElementById('numberSelection').style.display = 'none';
-                document.getElementById('apresButtonContainer').style.display = 'block';
-                document.getElementById('afterPhotosContainer').style.display = 'none';
-                document.getElementById('numberSelectionAfter').style.display = 'none';
-                document.getElementById('sendAfterContainer').style.display = 'none';
-                
-                if (backButton) backButton.style.display = 'block';
-            }
-        }
-
-        function showAfterPhotos() {
-            document.getElementById('apresButtonContainer').style.display = 'none';
-            document.getElementById('afterPhotosContainer').style.display = 'block';
-            document.getElementById('numberSelectionAfter').style.display = 'block';
-            document.getElementById('sendAfterContainer').style.display = 'block';
-            
-            document.getElementById('completedBeforeNumber').textContent = selectedNumber;
-            
-            showNotification('Prêt pour les photos APRÈS', 'success');
-        }
-
-        function goBackToStep1() {
-            if (!confirm("Voulez-vous vraiment retourner aux photos AVANT ? Les photos APRÈS seront perdues.")) {
-                return;
-            }
-            
-            currentStep = 1;
-            selectedNumberAfter = null;
-            afterPhotos = Array(5).fill(null);
-            
-            updateUIForCurrentStep();
-            updatePhotoCount('after');
-            
-            showNotification("Retour aux photos AVANT", "success");
-        }
-
-        // ========== GESTION CAMÉRA ==========
-        async function activateCameraAutomatically() {
-            try {
-                updateCameraStatus('Activation de la caméra...');
-                
-                cameraStream = await navigator.mediaDevices.getUserMedia({
-                    video: { 
-                        width: { ideal: 1920 },
-                        height: { ideal: 1080 },
-                        facingMode: 'environment'
-                    },
-                    audio: false
+                const resp = await fetch('/api/send-email', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ smtpUser: smtpUser, smtpPass: smtpPass, to: toField.value.trim(), cc: ccField.value.trim(), subject: subjectField.value.trim(), htmlBody: html })
                 });
-                
-                isCameraActive = true;
-                updateCameraStatus('Caméra active ✓', true);
-                
-                // Masquer le bouton d'activation manuelle
-                document.getElementById('toggleCamera').style.display = 'none';
-                
-                showNotification('Caméra activée', 'success');
-                
-            } catch (error) {
-                console.error('Erreur activation caméra:', error);
-                updateCameraStatus('Caméra non disponible', false);
-                document.getElementById('toggleCamera').style.display = 'block';
-                showNotification('Erreur caméra - Activation manuelle requise', 'warning');
+                const res = await resp.json();
+                if(res.success) { 
+                    const templateName = templateNames[currentTemplateIndex] || "Template inconnu";
+                    addToHistory(sipNumber, templateName, subjectField.value.trim(), toField.value.trim(), smtpUser);
+                    showToast('✅ Email envoyé et enregistré'); 
+                    updateStatus('Succès');
+                    return true;
+                } else throw new Error(res.message || 'Erreur');
+            } catch(e) { 
+                showToast(`Erreur: ${e.message}`, true); 
+                updateStatus(`Échec: ${e.message}`, true);
+                return false;
+            } finally { 
+                sendBtnElem.classList.remove('disabled');
             }
         }
-
-        function updateCameraStatus(text, isActive = false) {
-            const cameraStatus = document.getElementById('cameraStatus');
-            const cameraText = document.getElementById('cameraText');
+        
+        async function sendEmailWithDuplicateCheck() {
+            let sipNumber = extractSipFromSubject();
+            const templateName = templateNames[currentTemplateIndex];
             
-            cameraText.textContent = text;
-            
-            if (isActive) {
-                cameraStatus.classList.add('active');
-                cameraStatus.querySelector('.camera-icon').innerHTML = '<i class="fas fa-video"></i>';
-                cameraText.style.color = '#1a5fb4';
+            if (currentTemplateIndex !== 6 && currentTemplateIndex !== 8 && sipNumber && sipNumber !== 'N/A') {
+                const duplicateCheck = checkDuplicateSip(sipNumber, templateName);
+                if (duplicateCheck.isDuplicate) {
+                    showConfirmationModal(sipNumber, templateName, async () => {
+                        await executeSendEmail();
+                    });
+                    return;
+                }
+            }
+            await executeSendEmail();
+        }
+        
+        function handleSendClick() {
+            if (isWaitingForSend) {
+                showToast('Un envoi est déjà en attente', true);
+                return;
+            }
+            startCountdown(() => sendEmailWithDuplicateCheck());
+        }
+        
+        // Événements
+        document.getElementById('globalRotateBtn').addEventListener('click', async () => { const img = getActiveImage(); if(img) await rotateImage(img); else showToast('Aucune image', true); });
+        document.getElementById('globalSelectBtn').addEventListener('click', () => { const img = getActiveImage(); if(img) enableSelectionOnImage(img); else showToast('Aucune image', true); });
+        document.getElementById('globalResetBtn').addEventListener('click', async () => { const img = getActiveImage(); if(img) { if(originalImageUrls.has(img)) { img.src = originalImageUrls.get(img); showToast('Taille restaurée'); } else showToast('Pas d\'original', true); } else showToast('Aucune image', true); });
+        document.getElementById('globalDeleteAllBtn').addEventListener('click', () => { const containers = document.querySelectorAll('#richEditor .image-container'); if(containers.length && confirm('Supprimer toutes les images ?')) { containers.forEach(c => c.remove()); originalImageUrls.clear(); showToast('Images supprimées'); } else if(!containers.length) showToast('Aucune image', true); });
+        document.getElementById('globalExtractBtn').addEventListener('click', async () => { const img = getActiveImage(); if(img) await autoExtractFullImage(img); else showToast('Aucune image', true); });
+        document.getElementById('globalSendBtn').addEventListener('click', handleSendClick);
+        document.getElementById('cancelSendBtn').addEventListener('click', cancelSend);
+        
+        // Événements modal CORRIGÉS
+        document.getElementById('modalConfirmBtn').addEventListener('click', () => {
+            const enteredCode = document.getElementById('modalCodeInput').value;
+            if (enteredCode === currentConfirmationCode) {
+                hideConfirmationModal();
+                if (pendingConfirmationSend) {
+                    const sendFunction = pendingConfirmationSend;
+                    pendingConfirmationSend = null;
+                    sendFunction();
+                }
             } else {
-                cameraStatus.classList.remove('active');
-                cameraStatus.querySelector('.camera-icon').innerHTML = '<i class="fas fa-video-slash"></i>';
-                cameraText.style.color = '#ff6b6b';
+                showToast('❌ Code incorrect', true);
+                document.getElementById('modalCodeInput').value = '';
+                document.getElementById('modalCodeInput').focus();
             }
-        }
-
-        // ========== TÂCHES EN ARRIÈRE-PLAN ==========
-        function startBackgroundTasks() {
-            // Synchronisation automatique
-            syncInterval = setInterval(async () => {
-                await syncData();
-            }, SYNC_INTERVAL);
-            
-            // Sauvegarde automatique
-            autoSaveInterval = setInterval(async () => {
-                await autoSaveChanges();
-            }, AUTO_SAVE_INTERVAL);
-            
-            // Nettoyage automatique
-            setInterval(async () => {
-                await autoCleanup();
-            }, 3600000); // Toutes les heures
-        }
-
-        async function syncData() {
-            if (!supabaseClient || !currentUser) return;
-            
+        });
+        
+        document.getElementById('modalCancelBtn').addEventListener('click', () => {
+            hideConfirmationModal();
+            pendingConfirmationSend = null;
+            showToast('❌ Envoi annulé', true);
+        });
+        
+        document.getElementById('confirmationModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('confirmationModal')) {
+                hideConfirmationModal();
+                pendingConfirmationSend = null;
+                showToast('❌ Envoi annulé', true);
+            }
+        });
+        
+        document.getElementById('searchSipBtn').addEventListener('click', () => {
+            const sipInput = document.getElementById('searchSipInput').value.trim();
+            if (!sipInput) { showToast('Entrez un numéro SIP', true); return; }
+            const results = searchSIP(sipInput);
+            displaySearchResults(sipInput, results);
+            showToast(results.length > 0 ? `${results.length} résultat(s) trouvé(s)` : `Aucun résultat`, results.length === 0);
+        });
+        
+        document.getElementById('exportXlsxBtn').addEventListener('click', () => {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            exportToXLSX(startDate, endDate);
+        });
+        
+        richEditor.addEventListener('paste', (e) => {
+            for(let item of e.clipboardData.items) {
+                if(item.type.indexOf('image') !== -1) {
+                    const blob = item.getAsFile();
+                    const reader = new FileReader();
+                    reader.onload = async (ev) => await addImageAndKeepOriginalSize(ev.target.result);
+                    reader.readAsDataURL(blob);
+                    e.preventDefault();
+                    break;
+                }
+            }
+        });
+        richEditor.addEventListener('dragover', e => e.preventDefault());
+        richEditor.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            for(let file of e.dataTransfer.files) {
+                if(file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = async (ev) => await addImageAndKeepOriginalSize(ev.target.result);
+                    reader.readAsDataURL(file);
+                }
+            }
+        });
+        
+        allTemplateRects.forEach((rect, idx) => {
+            rect.addEventListener('click', () => { loadTemplate(parseInt(rect.dataset.template)); });
+        });
+        
+        document.getElementById('pasteNumberBtn').addEventListener('click', async () => {
+            if(currentTemplateIndex === 8) { showToast('Template OGIF pas de numéro', true); return; }
             try {
-                updateSyncStatus('synchronisation', 'Mise à jour...');
-                
-                // Synchroniser les données en attente
-                await syncPendingData();
-                
-                // Vérifier les nouvelles données
-                await checkForUpdates();
-                
-                updateSyncStatus('synchronisé', `Dernière sync: ${new Date().toLocaleTimeString()}`);
-                
-            } catch (error) {
-                console.error('Erreur synchronisation:', error);
-                updateSyncStatus('erreur', 'Échec synchronisation');
-            }
-        }
-
-        async function autoSaveChanges() {
-            if (!unsavedChanges || !currentUser) return;
-            
-            try {
-                // Sauvegarder les changements non synchronisés
-                await saveUnsavedChanges();
-                unsavedChanges = false;
-                
-            } catch (error) {
-                console.error('Erreur sauvegarde automatique:', error);
-            }
-        }
-
-        async function autoCleanup() {
-            try {
-                // Nettoyer les données temporaires
-                await cleanupTempData();
-                
-                // Vérifier l'espace de stockage
-                await checkStorageSpace();
-                
-            } catch (error) {
-                console.error('Erreur nettoyage automatique:', error);
-            }
-        }
-
-        // ========== FONCTIONS MANQUANTES À IMPLÉMENTER ==========
-        // Ces fonctions doivent être implémentées selon vos besoins spécifiques
+                const txt = await navigator.clipboard.readText();
+                let num = txt.trim().replace(/\D/g,'');
+                if(!num || !isValidNumber(num)) { showToast('Numéro invalide', true); return; }
+                let currentSub = subjectField.value;
+                const slashIdx = currentSub.indexOf('//');
+                let newSub = slashIdx !== -1 ? currentSub.substring(0, slashIdx+2)+' '+num : currentSub+' // '+num;
+                subjectField.value = newSub;
+                extractedData.sip = num;
+                autoReplacePlaceholders();
+                showToast(`📞 SIP: ${num}`);
+            } catch(e) { showToast('Accès presse-papier impossible', true); }
+        });
         
-        async function addEmployee() {
-            // Implémenter l'ajout d'employé
-            showNotification('Fonction à implémenter', 'warning');
-        }
-        
-        async function assignArea() {
-            // Implémenter l'attribution de zone
-            showNotification('Fonction à implémenter', 'warning');
-        }
-        
-        async function viewAllReports() {
-            // Implémenter l'affichage des rapports
-            showNotification('Fonction à implémenter', 'warning');
-        }
-        
-        async function exportAllData() {
-            // Implémenter l'export des données
-            showNotification('Fonction à implémenter', 'warning');
-        }
-        
-        async function cleanOldData() {
-            // Implémenter le nettoyage des anciennes données
-            showNotification('Fonction à implémenter', 'warning');
-        }
-        
-        async function generateZoneFile(reportId) {
-            // Implémenter la génération de fichier de zone
-            console.log('Génération fichier zone pour rapport:', reportId);
-        }
-        
-        async function syncPendingData() {
-            // Implémenter la synchronisation des données en attente
-        }
-        
-        async function checkForUpdates() {
-            // Implémenter la vérification des mises à jour
-        }
-        
-        async function saveUnsavedChanges() {
-            // Implémenter la sauvegarde des changements non synchronisés
-        }
-        
-        async function cleanupTempData() {
-            // Implémenter le nettoyage des données temporaires
-        }
-        
-        async function checkStorageSpace() {
-            // Implémenter la vérification de l'espace de stockage
-        }
-        
-        function saveReportLocally(type) {
-            // Implémenter la sauvegarde locale du rapport
-        }
-        
-        function addToSyncQueue(type, data) {
-            // Implémenter l'ajout à la file de synchronisation
-        }
-        
-        function handleNewReport(report) {
-            // Implémenter le traitement des nouveaux rapports
-        }
-        
-        function handleUserUpdate(payload) {
-            // Implémenter le traitement des mises à jour utilisateur
-        }
-        
-        function setupEventListeners() {
-            // Implémenter la configuration des écouteurs d'événements
-        }
-        
-        function updateUsersList(users) {
-            // Implémenter la mise à jour de la liste des utilisateurs
-        }
-        
-        function updateAreasList(areas) {
-            // Implémenter la mise à jour de la liste des zones
-        }
-        
-        function updateAreaSelect(assignedAreas) {
-            // Implémenter la mise à jour du sélecteur de zones
-        }
-        
-        function updateReportsList(reports) {
-            // Implémenter la mise à jour de la liste des rapports
-        }
-        
-        async function loadMyReports() {
-            // Implémenter le chargement des rapports personnels
-        }
-        
-        async function checkPendingReport() {
-            // Implémenter la vérification des rapports en attente
-        }
-
-        // ========== INITIALISATION DE L'APPLICATION ==========
-        document.addEventListener('DOMContentLoaded', initializeApp);
-
-        // Exposer les fonctions globales
-        window.login = login;
-        window.logout = logout;
-        window.sendBeforePhotos = sendBeforePhotos;
-        window.sendAfterPhotos = sendAfterPhotos;
-        window.showAfterPhotos = showAfterPhotos;
-        window.goBackToStep1 = goBackToStep1;
-        window.manualSync = syncData;
-        window.addEmployee = addEmployee;
-        window.assignArea = assignArea;
-        window.viewAllReports = viewAllReports;
-        window.exportAllData = exportAllData;
-        window.cleanOldData = cleanOldData;
-
-    </script>
+        loadTemplate(0);
+        loadCredentialsFromFile();
+        startSubjectWatcher();
+        updateStatus('✅ Prêt - Anti-spam actif (48h par template) - Surveillance auto du SIP');
+    })();
+</script>
 </body>
 </html>
